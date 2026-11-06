@@ -1,0 +1,11 @@
+[메모] 로그 추세 + 톱니파 위에 국소 이상치. 이상 구간 찾기
+
+[질문]
+The given time series has a trend and a cyclic component. It also has an anomaly. What is the most likely combination of components without the anomaly?
+
+[선택지]
+A. Log trend and sawtooth wave
+B. Exponential trend and square wave
+C. Linear trend and sine wave
+
+[정답] A

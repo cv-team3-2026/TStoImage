@@ -1,0 +1,28 @@
+[메모] 약 240일 가격 시계열. 질문이 SMA 20/50, MACD, RSI, 볼린저밴드 전략을 묻는 만큼, 이동평균·밴드 같은 파생 지표를 그래프에 덧그리는 증강이 직접적으로 유효한 예. (프로젝트 평가 범위에서는 보류 중인 task)
+
+[질문]
+You are a quantitative analyst backtesting several trading strategies. 
+Here are the five strategies you're evaluating:
+
+A) SMA Crossover (20/50): Buys when the 20-day moving average crosses above the 50-day moving average, sells when it crosses below.
+
+B) MACD (12/26/9): Buys when the MACD line crosses above the signal line, sells when it crosses below.
+
+C) RSI (14, 30/70): Buys when RSI falls below 30 (oversold condition), sells when RSI rises above 70 (overbought condition).
+
+D) Bollinger Bands (20, 2σ): Buys when price falls below the lower band (mean - 2 standard deviations), sells when price rises above the upper band (mean + 2 standard deviations).
+
+E) Buy and Hold: Enters the position at the beginning and holds it for the entire period.
+
+You have backtested these strategies on the provided price series with an initial capital of $10,000 and a transaction cost of 0.1% per trade.
+
+Based on the price data provided and standard technical analysis principles, which strategy would you expect to achieve the best mdd?
+
+[선택지]
+A. A) SMA Crossover
+B. B) MACD
+C. C) RSI
+D. D) Bollinger Bands
+E. E) Buy and Hold
+
+[정답] D

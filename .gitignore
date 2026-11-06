@@ -1,0 +1,7 @@
+# third-party benchmark code + data (re-download: see augmentation_examples/README.md)
+TSRBench/
+# archives / local
+*.zip
+.DS_Store
+venv/
+__pycache__/

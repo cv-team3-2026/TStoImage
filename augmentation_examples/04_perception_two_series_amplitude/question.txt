@@ -1,0 +1,10 @@
+[메모] 두 시계열 비교. 주기 성분 진폭이 큰 쪽 찾기 (2개 시계열 렌더링)
+
+[질문]
+Both time series have a cyclic components. Which time series has a higher amplitude of the cyclic component?
+
+[선택지]
+A. Time series 2 has higher amplitude
+B. Time series 1 has higher amplitude
+
+[정답] B

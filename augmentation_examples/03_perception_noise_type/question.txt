@@ -1,0 +1,10 @@
+[메모] 노이즈가 가산(additive)인지 승산(multiplicative)인지
+
+[질문]
+Is the noise in the time series more likely to be additive or multiplicative to the signal?
+
+[선택지]
+A. Multiplicative
+B. Additive
+
+[정답] A

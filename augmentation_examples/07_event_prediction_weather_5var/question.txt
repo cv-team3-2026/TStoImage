@@ -1,0 +1,10 @@
+[메모] 습도·기압·기온·풍속·풍향 5개 변수, 24시간. 단위와 범위가 전부 달라 subplot 축 눈금이 정보의 핵심. 풍향(0~360°)은 선형 축이 어색한 변수
+
+[질문]
+Your task is to predict whether it will rain or not in New York in the next 24 hours. Review the time-series data provided for the last 24 hours. Each time-series consists of hourly values separated.
+
+[선택지]
+A. Rain
+B. No Rain
+
+[정답] B

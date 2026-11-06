@@ -1,0 +1,14 @@
+[메모] 경기 이벤트 로그(텍스트)와 점수·승률 시계열(4개)을 함께 보고 결정적 순간의 사건을 추정. 점수는 계단형, 승률은 0~1 → 스케일이 다른 시계열을 한 그림에 어떻게 넣을지가 과제. history/future 경계 표시도 후보
+
+[질문]
+Based on the game's context and the data provided up to this point, what was the most likely event to occur?
+
+(결정적 순간: 10:05-1st 점수 2 - 4 → 9:46-1st 점수 5 - 4. history 15포인트 이후가 future)
+
+[선택지]
+A. Player 11 (Team B) makes 24-foot three point jumper (Player 6 (Team B) assists)
+B. Player 16 (Team B) makes 28-foot three point jumper (Player 8 (Team B) assists)
+C. Player 7 (Team A) makes dunk (Player 8 (Team A) assists)
+D. Player 2 (Team A) makes 25-foot three pointer (Player 6 (Team A) assists)
+
+[정답] D

@@ -1,0 +1,11 @@
+[메모] 추세+계절성+노이즈가 섞인 시계열. 지배적 패턴 찾기
+
+[질문]
+What is the most dominant pattern in this complex time series?
+
+[선택지]
+A. Noise
+B. Trend
+C. Seasonality
+
+[정답] C
