@@ -29,8 +29,6 @@ image augmentation 팀용 예시 시계열 9개입니다. TSRBench(ICML 2026)에
 | 08_quant_decision_price_series | 1개, 207점 | 이동평균·볼린저밴드 오버레이 |
 | 09_tsf_news_plus_stock | 4개, 35점 | 뉴스 + 주가 (발표 running example과 같은 구조) |
 
-01~04는 합성 데이터라 정답 패턴이 명확하고, 05~09는 실데이터입니다.
-
 ## 출처
 
 - 데이터: https://huggingface.co/datasets/umd-zhou-lab/TSRBench
