@@ -1,7 +1,34 @@
-# third-party benchmark code + data (re-download: see augmentation_examples/README.md)
-TSRBench/
-# archives / local
-*.zip
-.DS_Store
+# ---- 비밀 값: 절대 올리지 않는다 ----
+secrets.env
+*.secrets.env
+.env
+.env.*
+
+# ---- 외부 코드 / 데이터 (다시 받을 수 있다) ----
+third_party/*
+!third_party/README.md
+# 최상위에 받아 둔 예전 위치만 제외한다. "/" 를 빼면 Windows 에서 ts2img/benchmarks/tsrbench/ 까지 제외된다.
+/TSRBench/
+/data/
+
+# ---- 실행 결과 ----
+# 원자료(runs, experiments, serve, preview)는 크고 다시 만들 수 있어 올리지 않는다.
+# 보고서(results/reports)만 올린다.
+results/*
+!results/reports/
+# smoke 는 가짜 모델(mock)로 흐름만 확인하는 실험이라 보고서도 올리지 않는다.
+results/reports/smoke/
+ts2img_*.zip
+# tools/pack_source.py 가 만드는 파일 (push 전 코드를 Colab 으로 옮길 때)
+/ts2img_src.tar.gz
+
+# ---- 로컬 환경 ----
+.venv/
 venv/
 __pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+*.log
+*.zip
+.DS_Store

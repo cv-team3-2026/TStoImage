@@ -1,0 +1,37 @@
+# TSRBench 15개 task 전체 (4,125문항) 기준 성능.
+# 시간이 오래 걸린다. 먼저 `--limit 20` 으로 전 task 가 도는지 확인하는 것을 권한다.
+#
+#   python -m ts2img run tsrbench_full_baseline --limit 20 --auto-serve
+#   python -m ts2img run tsrbench_full_baseline --auto-serve --background
+#
+# 주의: 먼저 configs/models.yaml 에서 모델의 max_model_len 을 올려야 한다 (기본 8192 는 perception 용).
+# vision 만이면 16384, text 가 들어가면 32768 이상. 그 파일 위쪽 설명 참고.
+# 한도를 넘는 문항은 context_overflow 로 기록되고 오답으로 집계된다. 건수는 보고서에 따로 나온다.
+# 한도를 올리고 같은 명령을 다시 실행하면 넘쳤던 문항만 다시 돈다.
+
+description: TSRBench 전체 task 기준 성능
+benchmarks:
+  - tsrbench
+  # 일부만 고를 때:
+  # - tsrbench/perception
+  # - tsrbench/reasoning              # reasoning 7개 전부
+  # - tsrbench/reasoning/abductive
+  # - tsrbench/reasoning/causal
+  # - tsrbench/reasoning/deductive
+  # - tsrbench/reasoning/etiological
+  # - tsrbench/reasoning/inductive
+  # - tsrbench/reasoning/numerical
+  # - tsrbench/reasoning/temporal_relation
+  # - tsrbench/prediction             # 2개 전부
+  # - tsrbench/prediction/time_series_forecasting
+  # - tsrbench/prediction/event_prediction
+  # - tsrbench/decision               # 2개 전부
+  # - tsrbench/decision/qualitative_decision
+  # - tsrbench/decision/quantitative_decision
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+# modalities: [text, vision, text+vision]
+charts:
+  - tsrbench_baseline
+sampling: official
+repeats: 1
