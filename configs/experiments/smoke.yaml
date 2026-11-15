@@ -1,8 +1,5 @@
-# 설치와 흐름 확인용. 가짜 모델(mock)이라 GPU 나 API key 없이 몇 초 만에 끝난다.
-# 정확도 숫자는 의미가 없다.
-#   python -m ts2img run smoke
-#   python -m ts2img report smoke
-# 실제 모델로 짧게 확인하려면:  python -m ts2img run smoke --models qwen3-vl-4b --auto-serve
+# 설치와 흐름 확인용. 가짜 모델(mock)이라 몇 초 만에 끝난다. 정확도는 의미 없음.
+# 실제 모델로 짧게: python -m ts2img run smoke --models qwen3-vl-4b --auto-serve
 
 description: 설치 확인용 (mock 모델, task 마다 8문항)
 benchmarks:

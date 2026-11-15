@@ -36,7 +36,6 @@
 | `ts2img/report/` | 통계(Wilson CI, McNemar, Holm), report.md / html / csv |
 | `ts2img/notebook.py`, `main.ipynb` | 노트북용 얇은 껍데기. 실제 일은 CLI 가 한다 |
 | `tools/make_notebook.py` | `main.ipynb` 를 만드는 script |
-| `tools/pack_source.py` | push 하지 않은 코드를 Colab 으로 옮길 `ts2img_src.tar.gz` 를 만든다 (노트북 첫 셀의 `USE_ARCHIVE`) |
 
 명령 목록은 `python -m ts2img --help`, 사용법은 `README.md`.
 
@@ -53,7 +52,7 @@ TSRBench
 - 공식 chart 는 이름 없는 series 를 `series_0` 으로 적는다. perception 질문은 "time series 1" 이라고 부른다 (불일치. chart 옵션 `names` 로 실험 가능).
 - 공식 코드는 sampling 값을 보내지 않는다 (서버 기본값). 채점은 `eval()` 을 쓰고 읽지 못한 응답을 분모에서 뺀다.
 - event_prediction 은 정답 360개 중 303개가 B 다. 그래서 보고서에 "최빈 정답만 찍었을 때" 기준선을 같이 싣는다.
-- 문항 길이: text 조건에서 qualitative_decision 은 문항당 숫자 12,000개(약 7만 자), causal 은 약 3만 자. vision 만 써도 abductive, time_series_forecasting 은 질문 글이 길다(최대 약 3만 자). `configs/models.yaml` 의 `max_model_len` 설명 참고.
+- 문항 길이: text 조건에서 qualitative_decision 은 문항당 숫자 12,000개(약 7만 자), causal 은 약 3만 자. vision 만 써도 abductive, time_series_forecasting 은 질문 글이 길다(최대 약 3만 자). README "모델" 절의 `max_model_len` 설명 참고.
 
 모델
 
@@ -69,7 +68,7 @@ TSRBench
 Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3-vl-4b --auto-serve`, 112건. 출력은 노트북 셀에서만 봤고 raw 결과는 보지 못했다)
 
 - `requirements.txt` 고정 버전이 설치된다. Colab 기본 패키지(`datasets`, `gradio`, `numba`, `bigframes`)와 dependency conflict 경고가 뜨지만 이 저장소는 그 패키지를 쓰지 않는다.
-- 노트북 첫 셀의 `USE_ARCHIVE = True` 경로와 Drive 연결이 동작한다. Drive 인증은 Colab 에 로그인한 계정과 다른 계정을 고르면 `Credentials propagation unsuccessful` 로 실패한다.
+- Drive 연결이 동작한다. Drive 인증은 Colab 에 로그인한 계정과 다른 계정을 고르면 `Credentials propagation unsuccessful` 로 실패한다.
 - `vllm==0.33.0` 이 별도 venv 에 설치되고, `serve.py` 가 만든 flag 로 `qwen3-vl-4b` (float16, `max_model_len` 8192) 서버가 뜬다. 처음 실행은 설치 약 2분 + 서버 준비 약 8분(모델 다운로드 포함).
 - 112건이 오류 0, context 초과 0 으로 끝났다. 답을 못 뽑은 응답은 2건(둘 다 causal).
 - 속도: perception 56건 약 13분, causal 56건 약 81분 (concurrency 8, Tesla T4).
@@ -102,6 +101,10 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 | 2026-11-13 | `max_tokens` 기본값을 "보내지 않음" 으로 (2026-11-12 의 2048 결정을 바꿈). 재요청 10회, text+vision schema 도 공식 그대로 둔다 | 사용자 결정: 공식 benchmark 기준을 따른다. 2048 에서는 causal 응답의 절반 이상이 잘렸다. 대가는 시간이다 (끝나지 않는 풀이는 context 한도까지 생성하고 재요청된다). 느리면 실험 yaml 에서 `max_tokens`, `answer_retries` 를 줄인다 |
 | 2026-11-13 | `max_model_len` 은 계속 hash 에 넣지 않는다. 대신 한 실험을 도는 동안에는 바꾸지 않는다 | `max_tokens` 를 보내지 않으면 `max_model_len` 이 출력 상한도 정한다. 도중에 바꾸면 길이 한도에서 잘린 응답만 조건이 달라진 채 같은 폴더에 남는다 |
 | 2026-11-13 | push 전 코드는 압축 파일로 Colab 에 옮겨 시험한다 (`tools/pack_source.py` + 첫 셀 `USE_ARCHIVE`) | 팀 공용 저장소라 검증하지 않은 코드를 먼저 올리고 싶지 않아서. 기본값은 그대로 GitHub clone |
+| 2026-11-14 | `pack_source.py` 와 `USE_ARCHIVE` 삭제 (2026-11-13 결정을 바꿈) | 사용자가 개인 branch 로 해결했다. 필요하면 직접 branch 를 clone 한다 |
+| 2026-11-14 | 유료 API 비용 기능 삭제: `paid`, `pricing.yaml`, `estimate`, `--budget-usd` (2026-11-12 결정을 바꿈) | 한 번도 쓰지 않았고 구조만 복잡하게 했다. 상용 API 는 외부 URL 로 계속 호출할 수 있다. 대가: 지출 상한이 없으니 `--limit` 으로 직접 줄인다 |
+| 2026-11-14 | 노트북 구조: A. Colab 준비 / B. 서버 준비 중 하나 실행 후 공통 실행, 진행, 결과. 미리보기는 부록. 출력 없이 commit | 환경별 차이는 준비 단계뿐이다. 실행 셀을 환경별로 두면 두 벌이 어긋난다 |
+| 2026-11-14 | 설정 파일과 문서의 주석을 최소화. 설명은 README 한 곳에 | 같은 설명이 yaml, 노트북, 문서에 반복돼 읽기 어려웠다. Hydra 는 hash/재개 구조와 맞지 않아 쓰지 않는다 |
 
 ## 5. 현재 상태
 
@@ -113,7 +116,8 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 2. `max_tokens` 를 보내지 않을 때의 실제 동작과 속도 (응답이 context 한도까지 가는지, `request_timeout` 1800초 안에 끝나는지). context 초과 오류 문구가 `client.py` 의 `_OVERFLOW_HINTS` 에 걸리는지 (smoke 의 문항은 짧아서 초과가 나지 않았다).
 3. Colab: Secrets 읽기, Drive 에서 복원(`nb.setup(drive=True)`)과 실행 중 자동 복사, `--background` 프로세스가 셀 종료 뒤에도 사는지.
 4. Linux 에서의 `stop` (SIGINT 경로). Windows 에서만 확인했다.
-5. 유료 API 호출. 한 번도 보내지 않았다.
+5. 상용 API 호출. 한 번도 보내지 않았다.
+6. 2026-11-14 에 다시 만든 `main.ipynb` (A/B 구조). Colab 에서 아직 돌려 보지 않았다.
 
 다음 할 일
 
@@ -169,3 +173,4 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 | 2026-11-13 | push 전 Colab 시험 방법 추가 (2번 표, 4번, 5번) |
 | 2026-11-13 | Colab 에서 실제 모델(`qwen3-vl-4b`)로 smoke 실행. 확인된 내용을 3번으로 옮기고 5번을 줄임 |
 | 2026-11-13 | 채점 오류 수정(adapter version 2), `max_tokens` 기본값을 공식과 같게 변경 |
+| 2026-11-14 | pack_source, 유료 비용 기능 삭제. README, 노트북, yaml 주석 정리 |

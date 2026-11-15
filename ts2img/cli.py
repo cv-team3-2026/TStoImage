@@ -100,7 +100,7 @@ def cmd_doctor(args) -> int:
         if m.provider == "mock":
             rows.append((key, "mock", "-", "-", "사용 가능"))
             continue
-        kind = "직접 서빙" if m.serve else ("유료 API" if m.paid else "외부 endpoint")
+        kind = "직접 서빙" if m.serve else "외부 endpoint"
         key_state = "-" if not m.api_key_env else f"{m.api_key_env}: {secrets.mask(secrets.get(m.api_key_env))}"
         url = m.resolved_base_url() or "(없음)"
         if m.base_url_env:
@@ -155,7 +155,7 @@ def cmd_list(args) -> int:
              (charts.get_chart(n).__doc__ or "").strip().splitlines()[0]) for n in charts.chart_names()]
     ui.table("charts", ["이름", "옵션 (기본값)", "설명"], rows)
     ui.info("후처리(post): " + ", ".join(charts._post.FILTERS) + " | method: " + ", ".join(method_names()))
-    rows = [(k, m.model, "mock" if m.provider == "mock" else "직접 서빙" if m.serve else "유료 API" if m.paid else "외부 endpoint", m.notes)
+    rows = [(k, m.model, "mock" if m.provider == "mock" else "직접 서빙" if m.serve else "외부 endpoint", m.notes)
             for k, m in load_models().items()]
     ui.table("models", ["key", "model", "종류", "메모"], rows)
     rows = []
@@ -259,12 +259,11 @@ def _spawn_background(argv: list[str], name: str) -> int:
 
 
 def cmd_run(args) -> int:
-    from ts2img.runner import RunOptions, _check_paid, make_plans, run_experiment, show_plan
-    from ts2img.config import load_pricing
+    from ts2img.runner import RunOptions, make_plans, run_experiment, show_plan
 
     exp = _load_exp(args)
     sync_dir = args.sync_dir or os.environ.get("TS2IMG_SYNC_DIR")
-    opts = RunOptions(budget_usd=args.budget_usd, auto_serve=args.auto_serve, dry_run=args.dry_run,
+    opts = RunOptions(auto_serve=args.auto_serve, dry_run=args.dry_run,
                       sync_dir=Path(sync_dir) if sync_dir else None, force=args.force, retry_overflow=args.retry_overflow)
     if args.background and not args.dry_run:
         ui.banner(f"실험: {exp.name}")
@@ -273,8 +272,6 @@ def cmd_run(args) -> int:
         if not any(p.pending for p in plans):
             ui.ok("남은 문항이 없습니다.")
             return 0
-        if not _check_paid(plans, opts, load_pricing()):
-            return 2
         return _spawn_background(sys.argv[1:] if args._argv is None else args._argv, exp.name)
     # stop 명령(SIGINT/SIGTERM)을 받으면 상태를 기록하고 끝나게 한다
     for sig in (signal.SIGINT, signal.SIGTERM):
@@ -284,46 +281,6 @@ def cmd_run(args) -> int:
             pass
     ui.banner(f"실험: {exp.name}")
     return run_experiment(exp, opts)
-
-
-def cmd_estimate(args) -> int:
-    from ts2img import cost
-    from ts2img.config import load_pricing
-    from ts2img.runner import RunOptions, make_plans, run_experiment
-
-    exp = _load_exp(args)
-    pricing = load_pricing()
-    full_limit = exp.limit
-    plans = make_plans(exp)
-    paid = [p for p in plans if p.cell.model.paid]
-    if not paid:
-        ui.info("유료 모델이 없습니다. 비용이 들지 않습니다.")
-        return 0
-    need_pilot = [p for p in paid if sum(1 for r in p.records.values() if r.get("status") == "ok") < args.pilot and p.pending]
-    if need_pilot:
-        ui.info(f"token 사용량을 재기 위해 cell 마다 {args.pilot}문항을 실제로 보냅니다 (상한 ${args.budget_usd}). 결과는 본실험에 그대로 쓰입니다.")
-        exp.limit = args.pilot
-        exp.models = sorted({p.cell.model.key for p in paid})
-        code = run_experiment(exp, RunOptions(budget_usd=args.budget_usd))
-        if code not in (0, 3):
-            return code
-        exp = _load_exp(args)
-        exp.limit = full_limit
-        plans = [p for p in make_plans(exp) if p.cell.model.paid]
-    else:
-        plans = paid
-    rows, total = [], 0.0
-    for p in plans:
-        proj = cost.project(list(p.records.values()), len(p.pending), cost.price_for(p.cell.model, pricing))
-        if proj:
-            total += proj["usd_remaining"]
-            rows.append((p.cell.label, len(p.pending), f"{proj['avg_prompt_tokens']:.0f}", f"{proj['avg_completion_tokens']:.0f}",
-                         f"${proj['usd_per_sample']:.5f}", f"${proj['usd_remaining']:.3f}"))
-        else:
-            rows.append((p.cell.label, len(p.pending), "?", "?", "?", "?"))
-    ui.table("예상 비용", ["cell", "남은 문항", "입력 tok", "출력 tok", "문항당", "합계"], rows, right=(1, 2, 3, 4, 5))
-    ui.panel(f"남은 문항 전체 예상: ${total:.2f}\n실행: python -m ts2img run {args.experiment} --budget-usd {max(1, round(total * 1.3 + 0.5))}", title="비용 추정")
-    return 0
 
 
 def _show_status(name: str) -> str:
@@ -338,7 +295,7 @@ def _show_status(name: str) -> str:
         state = "dead"
     label = {
         "running": "[green]실행 중[/]", "finished": "[green]완료[/]", "failed": "[red]일부 실패[/]",
-        "interrupted": "[yellow]중단됨[/]", "budget_reached": "[yellow]지출 상한 도달[/]",
+        "interrupted": "[yellow]중단됨[/]",
         "dead": "[red]프로세스가 종료됨[/] (같은 명령을 다시 실행하면 이어서 돕니다)",
     }.get(state, state)
     done, total = st["requests_done"], st["requests_total"]
@@ -349,8 +306,6 @@ def _show_status(name: str) -> str:
         f"경과: {ui.fmt_duration(st.get('elapsed_s'))}" + (f" | 남은 시간: ~{ui.fmt_duration(st.get('eta_s'))}" if state == "running" else ""),
         f"시작: {st.get('started_at')} | 갱신: {st.get('updated_at')}",
     ]
-    if st.get("budget_usd") is not None:
-        lines.append(f"지출: ${st.get('spent_usd')} / ${st.get('budget_usd')}")
     if st.get("current") and state == "running":
         lines.append(f"현재: {st['current']}")
     ui.panel("\n".join(lines), title=f"실험: {name}")
@@ -479,19 +434,11 @@ def build_parser() -> argparse.ArgumentParser:
     _add_overrides(s)
     s.add_argument("--background", action="store_true", help="창을 닫아도 계속 돌게 분리해 실행")
     s.add_argument("--auto-serve", action="store_true", help="serve 블록이 있는 모델을 자동으로 띄우고 끝나면 끈다")
-    s.add_argument("--budget-usd", type=float, help="유료 모델 지출 상한 (유료 모델이면 필수)")
     s.add_argument("--dry-run", action="store_true", help="계획만 보여 준다")
     s.add_argument("--sync-dir", help="결과를 2분마다 복사할 위치 (예: Google Drive)")
     s.add_argument("--force", action="store_true", help="같은 실험이 실행 중이라는 기록을 무시")
     s.add_argument("--retry-overflow", action="store_true", help="context 초과로 끝난 문항을 다시 보낸다")
     s.set_defaults(fn=cmd_run)
-
-    s = sub.add_parser("estimate", help="유료 모델 예상 비용 (cell 마다 몇 문항을 실제로 보내 잰다)")
-    s.add_argument("experiment")
-    _add_overrides(s)
-    s.add_argument("--pilot", type=int, default=5)
-    s.add_argument("--budget-usd", type=float, default=0.5, help="측정에 쓸 지출 상한")
-    s.set_defaults(fn=cmd_estimate)
 
     s = sub.add_parser("status", help="진행 상황")
     s.add_argument("name", nargs="?")

@@ -1,10 +1,5 @@
-# 2단계: chart 를 바꾸면 perception 성능이 달라지는가.
-# 첫 항목(tsrbench_baseline)이 비교 기준이다. 나머지는 각각 기준과 문항 단위로 비교된다.
-# 기준 run 은 perception_baseline 에서 이미 돌렸다면 다시 돌지 않는다 (같은 설정 = 같은 폴더).
-#
-# 항목을 추가/삭제해도 이미 끝난 run 은 그대로 재사용된다.
-# 옵션 이름과 기본값:  python -m ts2img list
-# 그림 확인:          python -m ts2img preview charts --exp perception_augment
+# 2단계: chart 변형별 perception 성능. 첫 항목이 비교 기준이다.
+# 그림 확인: python -m ts2img preview charts --exp perception_augment
 
 description: perception 에서 chart 변형별 성능 비교
 benchmarks:
@@ -13,35 +8,13 @@ models: [qwen3-vl-4b]
 modalities: [vision, text+vision]
 charts:
   - tsrbench_baseline
-
-  # 축 이름을 질문과 맞춤. 공식 chart 는 "series_0" 인데 질문은 "time series 1" 이라고 부른다
-  - {use: line_style, names: "Time Series {n}"}
-
-  # 선 굵기 (공식 2)
-  - {use: line_style, linewidth: 1}
+  - {use: line_style, names: "Time Series {n}"}   # 축 이름을 질문 표기와 맞춤 (공식은 series_0)
+  - {use: line_style, linewidth: 1}               # 선 굵기 (공식 2)
   - {use: line_style, linewidth: 4}
-
-  # 해상도 2배 (같은 그림을 더 크게)
-  - {use: line_style, scale: 2}
-
-  # sharpening filter
+  - {use: line_style, scale: 2}                   # 해상도 2배
   - {use: tsrbench_baseline, post: [sharpen]}
-
-  # 이동평균 추세선을 같이 그림
   - {use: moving_average, window: 8}
-
-  # 여러 series 를 한 축에 색과 legend 로 구분해 그림
-  - {use: overlay_legend, normalize: zscore}
-
-  # 변환한 그림 여러 장 (원본 + 평활 + 차분)
+  - {use: overlay_legend, normalize: zscore}      # 한 축에 색 + legend
   - {use: multi_view, views: [full, smooth, diff]}
-
-  # 더 해 볼 만한 것 (주석을 풀어서 사용)
-  # - {use: line_style, color: black}
-  # - {use: line_style, marker: "o"}
-  # - {use: line_style, grid: false}
-  # - {use: moving_average, window: 16}
-  # - {use: overlay_legend, normalize: none}
-
 sampling: official
 repeats: 1

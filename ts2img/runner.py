@@ -15,10 +15,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
-from ts2img import cost, sysinfo, ui
+from ts2img import sysinfo, ui
 from ts2img.benchmarks import get_benchmark
 from ts2img.benchmarks.base import Sample
-from ts2img.config import Cell, Experiment, expand, load_pricing
+from ts2img.config import Cell, Experiment, expand
 from ts2img.methods import get_method
 from ts2img.methods.base import RunContext
 from ts2img.models.client import ChatClient, FatalModelError
@@ -31,7 +31,6 @@ log = logging.getLogger("ts2img")
 
 @dataclass
 class RunOptions:
-    budget_usd: float | None = None
     auto_serve: bool = False
     dry_run: bool = False
     sync_dir: Path | None = None
@@ -129,11 +128,10 @@ def show_plan(exp: Experiment, plans: list[CellPlan]) -> None:
 
 # ---- 진행 표시 -------------------------------------------------------------
 class Tracker:
-    def __init__(self, exp: Experiment, plans: list[CellPlan], budget: float | None):
-        self.exp, self.plans, self.budget = exp, plans, budget
+    def __init__(self, exp: Experiment, plans: list[CellPlan]):
+        self.exp, self.plans = exp, plans
         self.total = sum(len(p.pending) for p in plans)
         self.done = 0
-        self.spent = 0.0
         self.t0 = time.time()
         self.state = "running"
         self.current: CellPlan | None = None
@@ -167,12 +165,11 @@ class Tracker:
             self._live.reset(self._t_cell, total=len(plan.pending), visible=True, description="현재", info="")
         self.write_status(force=True)
 
-    def on_record(self, plan: CellPlan, rec: dict, price: dict | None) -> None:
+    def on_record(self, plan: CellPlan, rec: dict) -> None:
         with self._lock:
             plan.records[rec["id"]] = rec
             plan.session_done += 1
             self.done += 1
-            self.spent += cost.cost_of(rec, price)
         if rec.get("status") == "error":
             log.warning("문항 실패 %s: %s", rec["id"], rec.get("error"))
         self._render(plan)
@@ -186,8 +183,6 @@ class Tracker:
             c = plan.counts()
             s += f" | 현재 {plan.session_done}/{len(plan.pending)} 정확도 {ui.fmt_pct(c['acc'])}%"
         s += f" | 경과 {ui.fmt_duration(el)} | 남음 ~{ui.fmt_duration(self.eta())} | {rate:.1f}문항/분"
-        if self.budget is not None:
-            s += f" | ${self.spent:.3f} / ${self.budget:.2f}"
         return s
 
     def _render(self, plan: CellPlan) -> None:
@@ -220,7 +215,6 @@ class Tracker:
             "started_at": datetime.fromtimestamp(self.t0).astimezone().isoformat(timespec="seconds"),
             "updated_at": now_iso(), "elapsed_s": round(el, 1), "eta_s": self.eta(),
             "requests_done": self.done, "requests_total": self.total,
-            "spent_usd": round(self.spent, 4) if self.budget is not None else None, "budget_usd": self.budget,
             "current": self.current.cell.label if self.current else None,
             "cells": cells,
         }
@@ -290,8 +284,7 @@ def _write_run_meta(plan: CellPlan, env: dict, endpoint_models: list[str], defau
     write_json(d / "env.json", env)
 
 
-def _run_cell(plan: CellPlan, client: ChatClient, tracker: Tracker, opts: RunOptions, stop: threading.Event,
-              price: dict | None) -> None:
+def _run_cell(plan: CellPlan, client: ChatClient, tracker: Tracker, opts: RunOptions, stop: threading.Event) -> None:
     cell = plan.cell
     bench = get_benchmark(cell.benchmark)
     method = get_method(cell.exp.method["use"])
@@ -344,12 +337,10 @@ def _run_cell(plan: CellPlan, client: ChatClient, tracker: Tracker, opts: RunOpt
             rec = fut.result()
             if rec is None:
                 continue
-            tracker.on_record(plan, rec, price)
+            tracker.on_record(plan, rec)
             consecutive_errors = consecutive_errors + 1 if rec.get("status") == "error" else 0
             if consecutive_errors >= limit_errors:
                 raise FatalModelError(f"요청이 연속 {consecutive_errors}건 실패했습니다. 마지막 오류: {rec.get('error')}")
-            if tracker.budget is not None and tracker.spent >= tracker.budget:
-                stop.set()
     except BaseException:
         # 대기 중인 문항은 취소한다. 이미 보낸 요청은 끝나는 대로 worker 가 기록한다
         stop.set()
@@ -363,36 +354,6 @@ def _run_cell(plan: CellPlan, client: ChatClient, tracker: Tracker, opts: RunOpt
     plan.state = "stopped" if stop.is_set() else "done"
     c = plan.counts()
     log.info("cell 끝: %s | 정확도 %s%% (%d/%d) 오류 %d context초과 %d", cell.label, ui.fmt_pct(c["acc"]), c["correct"], c["n_done"], c["n_error"], c["n_overflow"])
-
-
-def _check_paid(plans: list[CellPlan], opts: RunOptions, pricing: dict) -> bool:
-    """유료 모델: 단가와 예산 상한을 확인하고, 있는 기록으로 예상 비용을 보여 준다."""
-    paid = [p for p in plans if p.cell.model.paid and p.pending]
-    if not paid:
-        return True
-    rows, total, unknown = [], 0.0, False
-    for p in paid:
-        price = cost.price_for(p.cell.model, pricing)
-        if price is None:
-            ui.error(f"{p.cell.model.key}: configs/pricing.yaml 에 단가가 없습니다. 단가를 넣은 뒤 다시 실행하세요.")
-            return False
-        proj = cost.project(list(p.records.values()), len(p.pending), price)
-        if proj:
-            total += proj["usd_remaining"]
-            rows.append((p.cell.label, len(p.pending), f"{proj['avg_prompt_tokens']:.0f}", f"{proj['avg_completion_tokens']:.0f}", f"${proj['usd_remaining']:.3f}"))
-        else:
-            unknown = True
-            rows.append((p.cell.label, len(p.pending), "?", "?", "?"))
-    ui.table("유료 모델 예상 비용 (끝난 문항의 평균 token 기준)", ["cell", "남은 문항", "입력 tok", "출력 tok", "예상"], rows, right=(1, 2, 3, 4))
-    if unknown:
-        ui.warn("기록이 없는 cell 은 추정할 수 없습니다. `python -m ts2img estimate <실험>` 으로 5문항씩 먼저 돌려 볼 수 있습니다.")
-    else:
-        ui.info(f"예상 합계: ${total:.2f}")
-    if opts.budget_usd is None:
-        ui.error("유료 모델이 포함돼 있습니다. 지출 상한을 정해 다시 실행하세요: --budget-usd 5")
-        return False
-    ui.info(f"지출 상한 ${opts.budget_usd:.2f}. 상한에 닿으면 멈춥니다 (진행 중이던 요청만큼 조금 넘을 수 있음).")
-    return True
 
 
 def run_experiment(exp: Experiment, opts: RunOptions | None = None) -> int:
@@ -411,17 +372,13 @@ def run_experiment(exp: Experiment, opts: RunOptions | None = None) -> int:
     if not any(p.pending for p in plans):
         ui.ok("남은 문항이 없습니다. 보고서: python -m ts2img report " + exp.name)
         return 0
-    pricing = load_pricing()
-    if not _check_paid(plans, opts, pricing):
-        return 2
 
     _setup_logging(exp_dir)
     if exp.source:
         (exp_dir / "experiment.yaml").write_text(Path(exp.source).read_text(encoding="utf-8"), encoding="utf-8")
     env = sysinfo.collect(full=True)
     log.info("실험 시작: %s | %s | %s", exp.name, sysinfo.accelerator_summary(env), env["os"])
-    budget = opts.budget_usd if any(p.cell.model.paid for p in plans) else None
-    tracker = Tracker(exp, plans, budget)
+    tracker = Tracker(exp, plans)
     stop = threading.Event()
     pusher = None
     if opts.sync_dir:
@@ -451,12 +408,9 @@ def run_experiment(exp: Experiment, opts: RunOptions | None = None) -> int:
                 if endpoint_models and model.model not in endpoint_models and model.provider == "openai":
                     ui.warn(f"{key}: endpoint 의 model 목록에 '{model.model}' 이 없습니다: {endpoint_models[:5]}")
                 default_sampling = _server_default_sampling(group[0].cell) if exp.sampling == "official" else None
-                price = cost.price_for(model, pricing) if model.paid else None
                 for plan in group:
-                    if stop.is_set():
-                        break
                     _write_run_meta(plan, env, endpoint_models, default_sampling)
-                    _run_cell(plan, client, tracker, opts, stop, price)
+                    _run_cell(plan, client, tracker, opts, stop)
             except FatalModelError as e:
                 ui.error(str(e))
                 log.error("모델 중단 %s: %s", key, e)
@@ -470,9 +424,6 @@ def run_experiment(exp: Experiment, opts: RunOptions | None = None) -> int:
                     from ts2img.models import serve
 
                     serve.stop()
-            if stop.is_set():
-                state = "budget_reached"
-                break
     except KeyboardInterrupt:
         state = "interrupted"
         log.warning("사용자 중단")
@@ -487,7 +438,7 @@ def run_experiment(exp: Experiment, opts: RunOptions | None = None) -> int:
             log.removeHandler(h)
 
     show_summary(exp, plans, tracker, state)
-    return {"finished": 0, "failed": 1, "budget_reached": 3, "interrupted": 130}[state]
+    return {"finished": 0, "failed": 1, "interrupted": 130}[state]
 
 
 def show_summary(exp: Experiment, plans: list[CellPlan], tracker: Tracker | None = None, state: str = "finished") -> None:
@@ -502,12 +453,9 @@ def show_summary(exp: Experiment, plans: list[CellPlan], tracker: Tracker | None
              rows, right=(4, 5, 6, 7, 8, 9))
     msg = {
         "finished": "[green]완료[/]", "failed": "[red]일부 실패[/]. 원인을 고친 뒤 같은 명령을 다시 실행하면 남은 문항만 이어서 돕니다.",
-        "budget_reached": "[yellow]지출 상한에 닿아 멈췄습니다.[/] 상한을 올려 다시 실행하면 이어서 돕니다.",
         "interrupted": "[yellow]중단됨.[/] 같은 명령을 다시 실행하면 이어서 돕니다.",
     }[state]
     if tracker:
         msg += f"\n요청 {tracker.done}건, 소요 {ui.fmt_duration(time.time() - tracker.t0)}"
-        if tracker.budget is not None:
-            msg += f", 지출 약 ${tracker.spent:.3f}"
     msg += f"\n보고서: python -m ts2img report {exp.name}\n상태/로그: {experiment_dir(exp.name)}"
     ui.panel(msg, title="실행 결과")

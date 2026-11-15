@@ -1,37 +1,12 @@
-# 1단계: TSRBench 방식 그대로 perception 700문항의 기준 성능을 잰다.
-#  - text / vision / text+vision 세 조건
-#  - 같은 설정을 3번 반복해 "아무것도 안 바꿔도 생기는 흔들림"을 잰다.
-#    이 흔들림보다 작은 차이는 chart 효과라고 말할 수 없다.
-#
-#   python -m ts2img run perception_baseline --auto-serve --background
-#   python -m ts2img status perception_baseline --watch
-#   python -m ts2img report perception_baseline
+# 1단계: perception 700문항의 기준 성능. 같은 설정을 3번 반복해 실행 간 흔들림을 잰다.
+# 이 흔들림보다 작은 차이는 chart 효과라고 말할 수 없다.
 
 description: perception 기준 성능과 반복 실행 간 흔들림
 benchmarks:
   - tsrbench/perception
-  # 하위 task 만 고를 수도 있다:
-  # - tsrbench/perception/pattern_recognition
-  # - tsrbench/perception/anomaly_detection
-  # - tsrbench/perception/similarity_analysis
-  # - tsrbench/perception/noise_understanding
 models: [qwen3-vl-4b]
 modalities: [text, vision, text+vision]
 charts:
   - tsrbench_baseline
-
-# sampling: official 은 temperature 등을 보내지 않는다 (공식 코드와 같다. 서버 기본값 사용)
 sampling: official
 repeats: 3
-
-# ---- 아래는 기본값. 바꿀 때만 주석을 푼다 ----
-# max_tokens: null          # 출력 길이 상한. null = 보내지 않음(공식). 서버가 context 가 허용하는 만큼 생성한다.
-#                           # 풀이가 끝나지 않는 문항 때문에 너무 느리면 숫자를 적는다 (예: 2048)
-# response_format: json_schema
-# answer_retries: 10        # 답 글자를 못 찾으면 다시 요청 (공식 10회). 느리면 줄인다
-# request_timeout: 1800     # 요청 하나의 제한 시간(초)
-# text_stride: 1            # text 조건에서 값을 몇 개마다 하나씩 넣을지. 1 = 전부
-# ts_placeholder: keep      # perception 질문에 남아 있는 "<ts><ts/>" 표기. keep = 그대로 보냄(공식).
-#                           # 다른 문자열을 적으면 이미지를 넣는 조건에서 그 문자열로 바꾼다. 예: "[shown in the image]"
-# concurrency: 8
-# limit: 50                 # 앞에서 N 문항만

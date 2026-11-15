@@ -184,21 +184,6 @@ def test_unparseable_answer_is_requested_again(fake_server, make_exp):
     assert all(r["attempts"] == 1 and r["pred"] is None for r in _records(det).values())
 
 
-def test_paid_model_requires_price_and_budget(fake_server, make_exp, tmp_path, monkeypatch):
-    models = tmp_path / "models.yaml"
-    models.write_text(f"models:\n  paid:\n    model: fake-vlm\n    base_url: {fake_server.url}\n    paid: true\n", encoding="utf-8")
-    monkeypatch.setenv("TS2IMG_MODELS_FILE", str(models))
-    exp = make_exp(models=["paid"], limit=10, concurrency=1)
-
-    assert run_experiment(exp) == 2 and not fake_server.requests            # 단가 없음
-    monkeypatch.setattr("ts2img.runner.load_pricing", lambda: {"paid": {"input": 1000.0, "output": 1000.0}})
-    assert run_experiment(exp) == 2 and not fake_server.requests            # 상한 없음
-    # 문항당 (100 + 10) tok * $1000/1M = $0.11 -> 상한 $0.3 이면 3문항쯤에서 멈춘다
-    assert run_experiment(exp, RunOptions(budget_usd=0.3)) == 3
-    assert 3 <= len(fake_server.requests) <= 4
-    assert read_json(experiment_dir(exp.name) / "status.json")["state"] == "budget_reached"
-
-
 def test_missing_api_key_message(make_exp, tmp_path, monkeypatch):
     models = tmp_path / "models.yaml"
     models.write_text("models:\n  nokey:\n    model: m\n    base_url: http://127.0.0.1:9/v1\n    api_key_env: TS2IMG_TEST_NO_SUCH_KEY\n", encoding="utf-8")

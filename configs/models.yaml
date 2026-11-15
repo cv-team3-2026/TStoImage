@@ -1,44 +1,22 @@
-# 모델 목록. 실험 yaml 의 models: 에는 여기의 key 를 적는다.
-# 모든 모델은 OpenAI-compatible URL 로 호출한다 (직접 띄우는 모델도 같다).
-#
-# 종류는 세 가지:
-#   1) 직접 서빙  : serve 블록이 있다. `python -m ts2img serve start <key>` 또는 `run --auto-serve`
-#   2) 외부 URL   : 누군가 띄워 둔 서버. base_url 또는 base_url_env(secrets 에서 읽음)
-#   3) 유료 API   : paid: true + api_key_env. 단가는 pricing.yaml, 실행에는 --budget-usd 필요
-#
-# 결과에 영향을 주는 값(model, revision, dtype, quantization 등)을 바꾸면
-# 다른 설정으로 보고 새 run 폴더에 저장한다. port, gpus, max_model_len 같은 운영용 값은 바꿔도 같은 run 이다.
-#
-# max_model_len (context 한도): 입력이 이보다 길면 그 문항은 context_overflow 로 기록되고 오답으로 집계된다.
-# 한도를 올리고 다시 실행하면 넘쳤던 문항만 다시 돈다. 필요한 크기 (추정. 실제 건수는 status 와 보고서에 나온다):
-#   - perception: 세 입력 조건 모두 8192 로 충분
-#   - 15개 task 전체, vision 만: 16384 권장 (abductive, time_series_forecasting 은 질문 글이 길다)
-#   - 15개 task 전체, text / text+vision: 32768 이상. qualitative_decision 은 문항당 숫자 12,000개라 그래도 넘칠 수 있다
-# 한도를 키울수록 GPU memory 를 더 쓴다. T4 에서 안 뜨면 줄인다.
-# API key 는 여기에 적지 않는다. secrets.env 에 적고 여기에는 이름(api_key_env)만 적는다.
-#
-# "mock" 은 파일에 없어도 항상 쓸 수 있다 (가짜 응답. 설치와 흐름 확인용).
+# 모델 목록. 실험 yaml 의 models: 에 key 를 적는다. 설명은 README "모델" 절.
+# serve 블록이 있으면 직접 띄우는 모델(vLLM), 없으면 외부 URL. "mock" 은 항상 쓸 수 있다.
 
 models:
-  # ---- 1) 직접 서빙 (vLLM, Linux + NVIDIA GPU) ------------------------------
-  # vLLM flag 는 아직 실제 GPU 에서 확인하지 못했다. 안 맞으면 extra_args 로 조정하고 AGENTS.md 에 기록.
   qwen3-vl-4b:
     model: Qwen/Qwen3-VL-4B-Instruct
     notes: "Colab T4(16GB) 기본. fp16 약 9GB"
     serve:
-      revision: ebb281ec70b05090aa6165b016eac8ec08e71b17   # HF commit 고정
-      dtype: float16            # T4 는 bfloat16 을 지원하지 않는다
-      max_model_len: 8192       # 위 설명 참고. 다른 task 로 넓힐 때 올린다
+      revision: ebb281ec70b05090aa6165b016eac8ec08e71b17
+      dtype: float16            # T4 는 bfloat16 미지원
+      max_model_len: 8192       # perception 용. 다른 task 는 README 참고
       limit_mm_per_prompt: {image: 4}
       gpus: [0]
       gpu_memory_utilization: 0.92
       port: 8000
-      # quantization: null      # 양자화를 쓰면 여기에 적는다 (결과에 영향)
-      # extra_args: []          # vLLM 에 그대로 붙일 인자
 
   qwen3-vl-2b:
     model: Qwen/Qwen3-VL-2B-Instruct
-    notes: "4B 가 T4 에서 안 뜰 때의 대안"
+    notes: "4B 가 T4 에서 안 뜰 때"
     serve:
       revision: 89644892e4d85e24eaac8bacfd4f463576704203
       dtype: float16
@@ -60,32 +38,9 @@ models:
       gpu_memory_utilization: 0.92
       port: 8000
 
-  # ---- 2) 외부 URL ----------------------------------------------------------
-  # 다른 사람이 띄워 둔 서버. secrets.env 에 LAB_VLM_BASE_URL=http://<주소>:8000/v1 을 적는다.
-  # 서버 쪽 설정(양자화 등)은 여기서 알 수 없으니 notes 에 직접 적어 둔다.
+  # 외부 서버. secrets.env 에 LAB_VLM_BASE_URL=http://<주소>:8000/v1
   lab-vlm:
-    model: Qwen/Qwen3-VL-8B-Instruct     # 서버가 받는 model 이름과 같아야 한다
+    model: Qwen/Qwen3-VL-8B-Instruct     # 서버의 model 이름과 같아야 한다
     base_url_env: LAB_VLM_BASE_URL
-    api_key_env: LAB_VLM_API_KEY         # 서버에 key 가 없으면 비워 둬도 된다
+    api_key_env: LAB_VLM_API_KEY         # 서버에 key 가 없으면 비워 둔다
     notes: "외부 서버 예시. 서버 설정: (여기에 기록)"
-
-  # ---- 3) 유료 API (예시. 쓰려면 주석을 풀고 pricing.yaml 에 단가를 넣는다) ----
-  # gpt-example:
-  #   model: <모델 이름>
-  #   base_url: https://api.openai.com/v1
-  #   api_key_env: OPENAI_API_KEY
-  #   paid: true
-  #   max_tokens_param: max_completion_tokens   # 최신 OpenAI 모델은 max_tokens 대신 이 이름을 쓴다
-  #   request: {}                               # 예: {reasoning_effort: low}
-  #
-  # gemini-example:
-  #   model: <모델 이름>
-  #   base_url: https://generativelanguage.googleapis.com/v1beta/openai/
-  #   api_key_env: GEMINI_API_KEY
-  #   paid: true
-  #
-  # openrouter-example:
-  #   model: <provider/모델 이름>
-  #   base_url: https://openrouter.ai/api/v1
-  #   api_key_env: OPENROUTER_API_KEY
-  #   paid: true

@@ -47,7 +47,6 @@ class ModelSpec:
     base_url: str | None = None
     base_url_env: str | None = None     # URL 을 secrets 에서 읽을 때
     api_key_env: str | None = None
-    paid: bool = False                  # 유료 API. true 면 run 에 --budget-usd 가 필요하다
     request: dict = field(default_factory=dict)   # 모든 요청에 붙는 값 (reasoning_effort, extra_body ...)
     max_tokens_param: str = "max_tokens"          # 일부 상용 모델은 max_completion_tokens
     response_format: str | None = None            # 실험 설정을 덮어쓸 때
@@ -91,11 +90,6 @@ def load_models(path: Path | None = None) -> dict[str, ModelSpec]:
     # 네트워크 없이 흐름을 확인하는 가짜 모델은 항상 쓸 수 있다
     out.setdefault("mock", ModelSpec(key="mock", model="mock", provider="mock", notes="가짜 응답 (흐름 확인용)"))
     return out
-
-
-def load_pricing(path: Path | None = None) -> dict[str, dict]:
-    p = path or CONFIGS / "pricing.yaml"
-    return (_load_yaml(p).get("prices") or {}) if p.is_file() else {}
 
 
 # ---- chart -----------------------------------------------------------------

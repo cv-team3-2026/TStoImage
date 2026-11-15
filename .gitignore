@@ -19,8 +19,6 @@ results/*
 # smoke 는 가짜 모델(mock)로 흐름만 확인하는 실험이라 보고서도 올리지 않는다.
 results/reports/smoke/
 ts2img_*.zip
-# tools/pack_source.py 가 만드는 파일 (push 전 코드를 Colab 으로 옮길 때)
-/ts2img_src.tar.gz
 
 # ---- 로컬 환경 ----
 .venv/
