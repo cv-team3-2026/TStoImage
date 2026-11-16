@@ -12,9 +12,18 @@
 | `moving_average` | 이동평균 추세선을 겹쳐 그린다 | `window`, `raw_alpha`, `legend` |
 | `overlay_legend` | 여러 series 를 한 축에 겹치고 legend 로 구분한다 | `normalize`(none/zscore/minmax), `legend_loc` |
 | `multi_view` | 변환한 그림을 여러 장 보낸다 | `views`(full/smooth/diff), `window` |
+| `tile_overlap` | 전체 그림 아래에 앞·뒤 구간을 겹쳐 붙인다 | `head`, `tail` |
+| `panel_row` | 여러 패널을 좌우로 배치한다. 하나면 공식 chart | `names` |
+| `zoom_crop` | 급변 구간만 크게 보여 준다. 축은 없다 | `half`, `scale` |
+| `zoom_window` | 급변 구간을 눈금이 있게 다시 그린다 | `half` |
+| `wide_x` | 높이는 유지하고 가로만 늘린다 | `width` |
+| `recolor_line` | 데이터 선 색만 바꾼다 | `color` |
+| `shade_jumps` | 급변 구간에 옅은 음영을 넣는다 | `z`, `color`, `alpha` |
+| `mark_jumps` | 급변 지점에 인덱스를 표시한다 | `z`, `max_marks` |
 | `none` | 이미지를 보내지 않는다 | - |
 
 후처리(`post`)는 어느 chart 에나 붙일 수 있습니다: `{use: tsrbench_baseline, post: [sharpen]}`.
+픽셀만 바꾸는 후처리: `sharpen`, `crop_margin`, `axis_sharpen`, `dark_mode`, `fade_grid`.
 옵션의 기본값은 `python -m ts2img list` 로 볼 수 있습니다.
 
 `names` 옵션: 공식 chart 는 이름 없는 series 를 `series_0`, `series_1` 로 적는데 perception 질문은 "time series 1", "time series 2" 라고 부릅니다.

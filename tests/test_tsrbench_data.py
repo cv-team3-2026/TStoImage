@@ -23,6 +23,18 @@ ALL_CHARTS = [
     ChartSpec.parse({"use": "overlay_legend", "normalize": "zscore"}),
     ChartSpec.parse({"use": "overlay_legend", "normalize": "minmax"}),
     ChartSpec.parse({"use": "multi_view", "views": ["full", "smooth", "diff"]}),
+    ChartSpec.parse({"use": "tsrbench_baseline", "post": ["crop_margin"]}),
+    ChartSpec.parse({"use": "tsrbench_baseline", "post": ["axis_sharpen"]}),
+    ChartSpec.parse({"use": "tsrbench_baseline", "post": ["dark_mode"]}),
+    ChartSpec.parse({"use": "tsrbench_baseline", "post": ["fade_grid"]}),
+    ChartSpec.parse("tile_overlap"),
+    ChartSpec.parse("panel_row"),
+    ChartSpec.parse("zoom_crop"),
+    ChartSpec.parse("zoom_window"),
+    ChartSpec.parse({"use": "wide_x", "width": 2}),
+    ChartSpec.parse("recolor_line"),
+    ChartSpec.parse("shade_jumps"),
+    ChartSpec.parse("mark_jumps"),
 ]
 
 

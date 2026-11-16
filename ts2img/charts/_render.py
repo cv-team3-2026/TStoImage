@@ -20,6 +20,7 @@ class Style:
     linewidth: float | None = None   # None = 공식값 (series 1개: 2, 여러 개: matplotlib 기본 1.5)
     color: str | None = None         # None = 공식값 (series 1개: blue, 여러 개: matplotlib 기본색)
     scale: float = 1.0               # figure 크기 배율
+    width_scale: float = 1.0        # 가로만 키운다. 1 이면 공식 폭
     grid: bool = True
     marker: str | None = None
     names: str | None = None         # 이름 형식. 예: "Time Series {n}" ({i}: 0부터, {n}: 1부터, {name}: 원래 이름)
@@ -70,7 +71,7 @@ def _draw_generic(sample: Sample, style: Style, extra: Extra | None):
     k = style.scale
 
     if len(series) == 1:
-        fig, ax = plt.subplots(figsize=(5 * k, 2 * k))
+        fig, ax = plt.subplots(figsize=(5 * k * style.width_scale, 2 * k))
         color = style.color or "blue"
         ax.plot(series[0], linewidth=style.linewidth or 2, color=color, marker=style.marker)
         if style.grid:
@@ -84,7 +85,7 @@ def _draw_generic(sample: Sample, style: Style, extra: Extra | None):
             extra(ax, 0, series[0], color)
         return fig
 
-    fig, axes = plt.subplots(len(series), 1, figsize=(6 * k, len(series) * 1.3 * k))
+    fig, axes = plt.subplots(len(series), 1, figsize=(6 * k * style.width_scale, len(series) * 1.3 * k))
     axes = np.atleast_1d(axes)
     for i, values in enumerate(series):
         kw = {}
@@ -117,7 +118,7 @@ def _draw_abductive(sample: Sample, style: Style, extra: Extra | None):
     lw = style.linewidth or 2
     k = style.scale
 
-    fig, ax = plt.subplots(figsize=(12 * k, 6 * k))
+    fig, ax = plt.subplots(figsize=(12 * k * style.width_scale, 6 * k))
     ax.plot(x[:split], a[:split], "b-", linewidth=lw, label="Team A Win Prob (History)", alpha=0.8)
     ax.plot(x[split:], a[split:], "b--", linewidth=lw, label="Team A Win Prob (Future)", alpha=0.8)
     ax.plot(x[:split], b[:split], "r-", linewidth=lw, label="Team B Win Prob (History)", alpha=0.8)
