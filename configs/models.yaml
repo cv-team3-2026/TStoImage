@@ -1,0 +1,46 @@
+# 모델 목록. 실험 yaml 의 models: 에 key 를 적는다. 설명은 README "모델" 절.
+# serve 블록이 있으면 직접 띄우는 모델(vLLM), 없으면 외부 URL. "mock" 은 항상 쓸 수 있다.
+
+models:
+  qwen3-vl-4b:
+    model: Qwen/Qwen3-VL-4B-Instruct
+    notes: "Colab T4(16GB) 기본. fp16 약 9GB"
+    serve:
+      revision: ebb281ec70b05090aa6165b016eac8ec08e71b17
+      dtype: float16            # T4 는 bfloat16 미지원
+      max_model_len: 8192       # perception 용. 다른 task 는 README 참고
+      limit_mm_per_prompt: {image: 4}
+      gpus: [0]
+      gpu_memory_utilization: 0.92
+      port: 8000
+
+  qwen3-vl-2b:
+    model: Qwen/Qwen3-VL-2B-Instruct
+    notes: "4B 가 T4 에서 안 뜰 때"
+    serve:
+      revision: 89644892e4d85e24eaac8bacfd4f463576704203
+      dtype: float16
+      max_model_len: 8192
+      limit_mm_per_prompt: {image: 4}
+      gpus: [0]
+      gpu_memory_utilization: 0.92
+      port: 8000
+
+  qwen3-vl-8b:
+    model: Qwen/Qwen3-VL-8B-Instruct
+    notes: "연구실 RTX 5090(32GB) 용"
+    serve:
+      revision: 0c351dd01ed87e9c1b53cbc748cba10e6187ff3b
+      dtype: bfloat16
+      max_model_len: 32768
+      limit_mm_per_prompt: {image: 4}
+      gpus: [0]
+      gpu_memory_utilization: 0.92
+      port: 8000
+
+  # 외부 서버. secrets.env 에 LAB_VLM_BASE_URL=http://<주소>:8000/v1
+  lab-vlm:
+    model: Qwen/Qwen3-VL-8B-Instruct     # 서버의 model 이름과 같아야 한다
+    base_url_env: LAB_VLM_BASE_URL
+    api_key_env: LAB_VLM_API_KEY         # 서버에 key 가 없으면 비워 둔다
+    notes: "외부 서버 예시. 서버 설정: (여기에 기록)"

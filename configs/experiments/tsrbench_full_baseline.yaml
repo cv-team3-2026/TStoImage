@@ -1,0 +1,12 @@
+# TSRBench 15개 task 전체 (4,125문항) 기준 성능. 먼저 --limit 20 으로 확인할 것.
+# 실행 전 models.yaml 의 max_model_len 을 올린다 (README "모델" 절).
+
+description: TSRBench 전체 task 기준 성능
+benchmarks:
+  - tsrbench
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+charts:
+  - tsrbench_baseline
+sampling: official
+repeats: 1

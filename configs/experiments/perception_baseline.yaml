@@ -1,0 +1,12 @@
+# 1단계: perception 700문항의 기준 성능. 같은 설정을 3번 반복해 실행 간 흔들림을 잰다.
+# 이 흔들림보다 작은 차이는 chart 효과라고 말할 수 없다.
+
+description: perception 기준 성능과 반복 실행 간 흔들림
+benchmarks:
+  - tsrbench/perception
+models: [qwen3-vl-4b]
+modalities: [text, vision, text+vision]
+charts:
+  - tsrbench_baseline
+sampling: official
+repeats: 3

@@ -1,0 +1,16 @@
+# 실험 실행 환경. chart 그림과 요청 형식에 영향을 주는 패키지는 버전을 고정한다.
+# (그림이 1픽셀이라도 달라지면 실험 조건이 달라진다)
+matplotlib==3.11.2
+pillow==13.0.0
+numpy==2.5.4
+openai==3.49.0
+
+huggingface_hub>=2.4,<3
+PyYAML>=6.0,<7
+rich>=15.0,<16
+pyfiglet>=1.0,<2
+psutil>=7.0,<8
+Markdown>=3.8,<4
+
+# 테스트
+pytest>=9.0,<10

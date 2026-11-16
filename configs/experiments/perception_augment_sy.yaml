@@ -1,0 +1,25 @@
+# perception 공식 chart 와 이미지 보정을 한 줄씩 비교한다. 한 그림에 기법을 겹치지 않는다.
+# 그림 확인: python -m ts2img preview charts --exp perception_augment_sy --examples
+
+description: perception chart 이미지 보정 비교
+benchmarks:
+  - tsrbench/perception
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+charts:
+  - tsrbench_baseline
+  - {use: tsrbench_baseline, post: [crop_margin]}
+  - {use: tsrbench_baseline, post: [axis_sharpen]}
+  - {use: tsrbench_baseline, post: [dark_mode]}
+  - {use: tsrbench_baseline, post: [fade_grid]}
+  - tile_overlap
+  - panel_row
+  - zoom_crop
+  - zoom_window
+  - {use: wide_x, width: 2}
+  - recolor_line
+  - {use: moving_average, window: 8}
+  - shade_jumps
+  - mark_jumps
+sampling: official
+repeats: 1

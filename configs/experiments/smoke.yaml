@@ -1,0 +1,14 @@
+# 설치와 흐름 확인용. 가짜 모델(mock)이라 몇 초 만에 끝난다. 정확도는 의미 없음.
+# 실제 모델로 짧게: python -m ts2img run smoke --models qwen3-vl-4b --auto-serve
+
+description: 설치 확인용 (mock 모델, task 마다 8문항)
+benchmarks:
+  - tsrbench/perception
+  - tsrbench/reasoning/causal
+models: [mock]
+modalities: [text, vision, text+vision]
+charts:
+  - tsrbench_baseline
+  - {use: line_style, linewidth: 4}
+  - {use: moving_average, window: 8}
+limit: 8
