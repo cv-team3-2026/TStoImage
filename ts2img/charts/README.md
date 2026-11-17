@@ -20,6 +20,9 @@
 | `recolor_line` | 데이터 선 색만 바꾼다 | `color` |
 | `shade_jumps` | 급변 구간에 옅은 음영을 넣는다 | `z`, `color`, `alpha` |
 | `mark_jumps` | 급변 지점에 인덱스를 표시한다 | `z`, `max_marks` |
+| `heatmap` | series 값을 시간 × 채널 색 지도로 그린다 | `dpi`, `fmt` |
+| `gaf` | Gramian Angular Summation Field. series 마다 한 패널 | `max_points`, `dpi`, `fmt` |
+| `spectrogram` | 구간별 주파수 세기를 로그 스케일로 그린다 | `nperseg`, `dpi`, `fmt` |
 | `none` | 이미지를 보내지 않는다 | - |
 
 후처리(`post`)는 어느 chart 에나 붙일 수 있습니다: `{use: tsrbench_baseline, post: [sharpen]}`.

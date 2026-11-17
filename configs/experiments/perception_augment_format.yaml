@@ -1,0 +1,15 @@
+# 공식 선 그래프와 heatmap, GAF, spectrogram 을 한 줄씩 비교한다.
+# 그림 확인: python -m ts2img preview charts --exp perception_augment_format --examples
+
+description: perception 시계열을 heatmap, GAF, spectrogram 으로 그리기
+benchmarks:
+  - tsrbench/perception
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+charts:
+  - tsrbench_baseline
+  - heatmap
+  - gaf
+  - spectrogram
+sampling: official
+repeats: 1

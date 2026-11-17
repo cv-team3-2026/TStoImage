@@ -35,6 +35,9 @@ ALL_CHARTS = [
     ChartSpec.parse("recolor_line"),
     ChartSpec.parse("shade_jumps"),
     ChartSpec.parse("mark_jumps"),
+    ChartSpec.parse("heatmap"),
+    ChartSpec.parse("gaf"),
+    ChartSpec.parse("spectrogram"),
 ]
 
 
