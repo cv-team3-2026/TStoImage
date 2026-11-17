@@ -23,7 +23,7 @@
 | `none` | 이미지를 보내지 않는다 | - |
 
 후처리(`post`)는 어느 chart 에나 붙일 수 있습니다: `{use: tsrbench_baseline, post: [sharpen]}`.
-픽셀만 바꾸는 후처리: `sharpen`, `crop_margin`, `axis_sharpen`, `dark_mode`, `fade_grid`.
+픽셀만 바꾸는 후처리: `sharpen`, `crop_margin`, `axis_sharpen`, `dark_mode`, `fade_grid`, `thicken_line`.
 옵션의 기본값은 `python -m ts2img list` 로 볼 수 있습니다.
 
 `names` 옵션: 공식 chart 는 이름 없는 series 를 `series_0`, `series_1` 로 적는데 perception 질문은 "time series 1", "time series 2" 라고 부릅니다.
