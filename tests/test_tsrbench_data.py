@@ -35,6 +35,11 @@ ALL_CHARTS = [
     ChartSpec.parse("recolor_line"),
     ChartSpec.parse("shade_jumps"),
     ChartSpec.parse("mark_jumps"),
+    ChartSpec.parse("shared_y"),
+    ChartSpec.parse({"use": "line_style", "tick_labelsize": 14, "y_ticks": 8}),
+    ChartSpec.parse("linear_trend"),
+    ChartSpec.parse("aspect"),
+    ChartSpec.parse({"use": "line_style", "scale": 2, "post": ["thicken_line", "crop_margin"]}),
 ]
 
 

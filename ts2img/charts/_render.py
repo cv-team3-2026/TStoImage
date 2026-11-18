@@ -24,6 +24,10 @@ class Style:
     grid: bool = True
     marker: str | None = None
     names: str | None = None         # 이름 형식. 예: "Time Series {n}" ({i}: 0부터, {n}: 1부터, {name}: 원래 이름)
+    share_y: bool = False            # 여러 패널의 y축 범위를 같게
+    tick_labelsize: float | None = None
+    y_ticks: int | None = None       # y축 눈금 개수. None 이면 matplotlib 기본
+    panel_height_scales: tuple[float, ...] | None = None  # 패널별 높이 배율. None 이면 공식 높이
 
 
 # series 를 그린 뒤 호출되는 hook: (ax, series index, values, 선 색)
@@ -58,6 +62,20 @@ def rolling_mean(values, window: int) -> np.ndarray:
     return out
 
 
+def _apply_axes(ax, style: Style) -> None:
+    if style.tick_labelsize:
+        ax.tick_params(axis="both", labelsize=style.tick_labelsize)
+    if style.y_ticks:
+        ax.yaxis.set_major_locator(plt.MaxNLocator(nbins=int(style.y_ticks)))
+
+
+def _panel_height(style: Style, n: int, each: float) -> float:
+    scales = style.panel_height_scales
+    if scales and len(scales) == n:
+        return each * sum(scales)
+    return each * n
+
+
 def draw(sample: Sample, style: Style | None = None, extra: Extra | None = None):
     style = style or Style()
     if sample.kind == "abductive":
@@ -71,7 +89,7 @@ def _draw_generic(sample: Sample, style: Style, extra: Extra | None):
     k = style.scale
 
     if len(series) == 1:
-        fig, ax = plt.subplots(figsize=(5 * k * style.width_scale, 2 * k))
+        fig, ax = plt.subplots(figsize=(5 * k * style.width_scale, _panel_height(style, 1, 2 * k)))
         color = style.color or "blue"
         ax.plot(series[0], linewidth=style.linewidth or 2, color=color, marker=style.marker)
         if style.grid:
@@ -83,9 +101,10 @@ def _draw_generic(sample: Sample, style: Style, extra: Extra | None):
         ax.spines["right"].set_visible(False)
         if extra:
             extra(ax, 0, series[0], color)
+        _apply_axes(ax, style)
         return fig
 
-    fig, axes = plt.subplots(len(series), 1, figsize=(6 * k * style.width_scale, len(series) * 1.3 * k))
+    fig, axes = plt.subplots(len(series), 1, figsize=(6 * k * style.width_scale, _panel_height(style, len(series), 1.3 * k)))
     axes = np.atleast_1d(axes)
     for i, values in enumerate(series):
         kw = {}
@@ -105,6 +124,15 @@ def _draw_generic(sample: Sample, style: Style, extra: Extra | None):
         axes[i].spines["right"].set_visible(False)
         if extra:
             extra(axes[i], i, values, line.get_color())
+        _apply_axes(axes[i], style)
+    if style.share_y:
+        finite = [v[np.isfinite(v)] for v in series if np.isfinite(v).any()]
+        if finite:
+            lo = min(float(v.min()) for v in finite)
+            hi = max(float(v.max()) for v in finite)
+            pad = (hi - lo) * 0.05 or 1.0
+            for ax in axes:
+                ax.set_ylim(lo - pad, hi + pad)
     return fig
 
 
@@ -135,5 +163,6 @@ def _draw_abductive(sample: Sample, style: Style, extra: Extra | None):
     ax.legend(loc="best", fontsize=9)
     if style.grid:
         ax.grid(True, alpha=0.3)
+    _apply_axes(ax, style)
     fig.tight_layout()
     return fig

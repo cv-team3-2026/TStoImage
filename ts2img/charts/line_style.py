@@ -20,6 +20,11 @@ def render(
     grid: bool = True,
     marker: str | None = None,        # 예: "o", "."
     names: str | None = None,         # 이름 형식. {i}: 0부터, {n}: 1부터, {name}: 원래 이름
+    tick_labelsize: float | None = None,
+    y_ticks: int | None = None,       # y축 눈금 개수. None 이면 matplotlib 기본
 ):
-    style = Style(linewidth=linewidth, color=color, scale=scale, grid=grid, marker=marker, names=names)
+    style = Style(
+        linewidth=linewidth, color=color, scale=scale, grid=grid, marker=marker, names=names,
+        tick_labelsize=tick_labelsize, y_ticks=y_ticks,
+    )
     return [fig_to_image(draw(sample, style), dpi=dpi, fmt=fmt)]
