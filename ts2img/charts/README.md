@@ -8,7 +8,7 @@
 | 이름 | 하는 일 | 주요 옵션 |
 | --- | --- | --- |
 | `tsrbench_baseline` | TSRBench 공식 chart. 비교 기준이라 옵션이 없다 | - |
-| `line_style` | 공식 chart 에서 모양만 바꾼다 | `linewidth`, `color`, `scale`(크기 배율), `dpi`, `grid`, `marker`, `names`, `fmt` |
+| `line_style` | 공식 chart 에서 모양만 바꾼다 | `linewidth`, `color`, `scale`(크기 배율), `dpi`, `grid`, `marker`, `names`, `fmt`, `tick_labelsize`, `y_ticks` |
 | `moving_average` | 이동평균 추세선을 겹쳐 그린다 | `window`, `raw_alpha`, `legend` |
 | `overlay_legend` | 여러 series 를 한 축에 겹치고 legend 로 구분한다 | `normalize`(none/zscore/minmax), `legend_loc` |
 | `multi_view` | 변환한 그림을 여러 장 보낸다 | `views`(full/smooth/diff), `window` |
@@ -20,10 +20,13 @@
 | `recolor_line` | 데이터 선 색만 바꾼다 | `color` |
 | `shade_jumps` | 급변 구간에 옅은 음영을 넣는다 | `z`, `color`, `alpha` |
 | `mark_jumps` | 급변 지점에 인덱스를 표시한다 | `z`, `max_marks` |
+| `shared_y` | 여러 패널의 y축 범위를 같게 맞춘다. 하나면 공식 chart | - |
+| `linear_trend` | 원래 선 위에 직선 추세선을 얇게 겹친다 | - |
+| `aspect` | 평균 기울기가 약 45도가 되게 패널 높이를 맞춘다 | - |
 | `none` | 이미지를 보내지 않는다 | - |
 
 후처리(`post`)는 어느 chart 에나 붙일 수 있습니다: `{use: tsrbench_baseline, post: [sharpen]}`.
-픽셀만 바꾸는 후처리: `sharpen`, `crop_margin`, `axis_sharpen`, `dark_mode`, `fade_grid`.
+픽셀만 바꾸는 후처리: `sharpen`, `crop_margin`, `axis_sharpen`, `dark_mode`, `fade_grid`, `thicken_line`.
 옵션의 기본값은 `python -m ts2img list` 로 볼 수 있습니다.
 
 `names` 옵션: 공식 chart 는 이름 없는 series 를 `series_0`, `series_1` 로 적는데 perception 질문은 "time series 1", "time series 2" 라고 부릅니다.

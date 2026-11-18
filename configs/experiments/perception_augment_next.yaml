@@ -1,0 +1,21 @@
+# 중간 보고의 추가 증강. 공식 선 그래프는 유지하고 축, 크기, 추세선만 바꾼다.
+# 그림 확인: python -m ts2img preview charts --exp perception_augment_next --examples
+
+description: perception 추가 증강 (공유 y축, 눈금, 해상도, 추세선, 합치기, 기울기)
+benchmarks:
+  - tsrbench/perception
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+charts:
+  - tsrbench_baseline
+  - shared_y
+  - {use: line_style, tick_labelsize: 14, y_ticks: 8}
+  - {use: line_style, scale: 1.5}
+  - {use: line_style, scale: 2}
+  - {use: line_style, scale: 3}
+  - {use: moving_average, window: 8, raw_alpha: 1}
+  - linear_trend
+  - {use: line_style, scale: 2, post: [thicken_line, crop_margin]}
+  - aspect
+sampling: official
+repeats: 1
