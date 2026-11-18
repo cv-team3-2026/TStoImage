@@ -1,0 +1,13 @@
+# 공식 그림에서 데이터 선만 두껍게 한 뒤 채도를 조금 올린다.
+# 그림 확인: python -m ts2img preview charts --exp perception_augment_km --examples
+
+description: perception 공식 그림의 데이터 선만 두껍게
+benchmarks:
+  - tsrbench/perception
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+charts:
+  - tsrbench_baseline
+  - {use: tsrbench_baseline, post: [thicken_line]}
+sampling: official
+repeats: 1

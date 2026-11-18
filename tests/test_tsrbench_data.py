@@ -27,6 +27,7 @@ ALL_CHARTS = [
     ChartSpec.parse({"use": "tsrbench_baseline", "post": ["axis_sharpen"]}),
     ChartSpec.parse({"use": "tsrbench_baseline", "post": ["dark_mode"]}),
     ChartSpec.parse({"use": "tsrbench_baseline", "post": ["fade_grid"]}),
+    ChartSpec.parse({"use": "tsrbench_baseline", "post": ["thicken_line"]}),
     ChartSpec.parse("tile_overlap"),
     ChartSpec.parse("panel_row"),
     ChartSpec.parse("zoom_crop"),
