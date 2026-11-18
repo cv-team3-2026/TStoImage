@@ -40,6 +40,9 @@ ALL_CHARTS = [
     ChartSpec.parse("linear_trend"),
     ChartSpec.parse("aspect"),
     ChartSpec.parse({"use": "line_style", "scale": 2, "post": ["thicken_line", "crop_margin"]}),
+    ChartSpec.parse("heatmap"),
+    ChartSpec.parse("gaf"),
+    ChartSpec.parse("spectrogram"),
 ]
 
 
