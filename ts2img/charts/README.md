@@ -26,6 +26,7 @@
 | `heatmap` | series 값을 시간 × 채널 색 지도로 그린다 | `dpi`, `fmt` |
 | `gaf` | Gramian Angular Summation Field. series 마다 한 패널 | `max_points`, `dpi`, `fmt` |
 | `spectrogram` | 구간별 주파수 세기를 로그 스케일로 그린다 | `nperseg`, `dpi`, `fmt` |
+| `combo` | 가로 배치, 공유 y축, 배율, 급변 음영을 한 그림에서 고른다. 하나면 공식 chart | `layout`(row/stack), `share_y`, `scale`, `shade` |
 | `none` | 이미지를 보내지 않는다 | - |
 
 후처리(`post`)는 어느 chart 에나 붙일 수 있습니다: `{use: tsrbench_baseline, post: [sharpen]}`.

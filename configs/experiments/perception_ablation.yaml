@@ -1,0 +1,14 @@
+# 여섯 요소를 모두 켠 그림이 baseline 보다 나은지. 이 파일의 비교는 full 하나다.
+# 요소: 가로 패널, y축 공유, 배율 3, 급변 음영, fade_grid 다음 dark_mode.
+# 그림 확인: python -m ts2img preview charts --exp perception_ablation --examples
+
+description: perception 조합 chart 가 baseline 보다 나은지
+benchmarks:
+  - tsrbench/perception
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+charts:
+  - tsrbench_baseline
+  - {use: combo, layout: row, share_y: true, scale: 3, shade: true, post: [fade_grid, dark_mode], label: full}
+sampling: official
+repeats: 1

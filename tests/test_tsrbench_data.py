@@ -44,6 +44,8 @@ ALL_CHARTS = [
     ChartSpec.parse("heatmap"),
     ChartSpec.parse("gaf"),
     ChartSpec.parse("spectrogram"),
+    ChartSpec.parse({"use": "combo", "layout": "row", "share_y": True, "scale": 3, "shade": True, "post": ["fade_grid", "dark_mode"]}),
+    ChartSpec.parse({"use": "combo", "layout": "stack", "share_y": True, "scale": 1, "shade": False}),
 ]
 
 
