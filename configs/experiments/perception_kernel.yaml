@@ -1,8 +1,7 @@
-# 격자 없는 선 그래프의 안쪽에만 sharpen, blur, edge(수업 과제의 kernel 3개)와 침식을 적용한다. 첫 chart(필터 없음)가 비교 기준이다.
-# tsrbench_baseline 은 격자를 뺀 효과를 따로 보려고 넣었다 (이미 돈 결과가 있으면 건너뛴다).
+# 격자 없는 선 그래프의 안쪽에만 수업 과제의 kernel 3개(sharpen, blur, edge)를 적용한다. 첫 chart(필터 없음)가 비교 기준이다.
 # 그림 확인: python -m ts2img preview charts --exp perception_kernel --examples
 
-description: perception 격자 없는 plot 안쪽에 sharpen, blur, edge, 침식 적용
+description: perception 격자 없는 plot 안쪽에 sharpen, blur, edge 적용
 benchmarks:
   - tsrbench/perception
 models: [qwen3-vl-4b]
@@ -12,7 +11,5 @@ charts:
   - {use: inner_filter, op: sharpen, label: sharpen}
   - {use: inner_filter, op: blur, label: blur}
   - {use: inner_filter, op: edge, label: edge}
-  - {use: inner_filter, op: erode, label: erode}
-  - tsrbench_baseline
 sampling: official
 repeats: 1

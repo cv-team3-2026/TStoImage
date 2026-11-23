@@ -78,6 +78,6 @@ def test_abductive_renders():
 
 def test_experiment_yaml():
     exp = load_experiment(EXPERIMENTS / "perception_kernel.yaml")
-    assert [c.label for c in exp.charts] == ["nogrid", "sharpen", "blur", "edge", "erode", "tsrbench_baseline"]
+    assert [c.label for c in exp.charts] == ["nogrid", "sharpen", "blur", "edge"]
     assert exp.baseline_label() == "nogrid"
-    assert len(expand(exp)) == 12  # chart 6 x (vision, text+vision)
+    assert len(expand(exp)) == 8  # chart 4 x (vision, text+vision)
