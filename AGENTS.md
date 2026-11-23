@@ -106,6 +106,7 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 | 2026-11-14 | 노트북 구조: A. Colab 준비 / B. 서버 준비 중 하나 실행 후 공통 실행, 진행, 결과. 미리보기는 부록. 출력 없이 commit | 환경별 차이는 준비 단계뿐이다. 실행 셀을 환경별로 두면 두 벌이 어긋난다 |
 | 2026-11-14 | 설정 파일과 문서의 주석을 최소화. 설명은 README 한 곳에 | 같은 설명이 yaml, 노트북, 문서에 반복돼 읽기 어려웠다. Hydra 는 hash/재개 구조와 맞지 않아 쓰지 않는다 |
 | 2026-11-23 | 발표용 CV 기법 실험은 `inner_filter` chart 로 한다: 격자 없는 plot 을 직접 그리고 그래프 안쪽에만 수업 과제의 kernel 3개(sharpen / blur / edge)를 적용. 침식(`op: erode`)은 chart 에는 있지만 실험에서 뺐다 (선을 굵게 하는 `thicken_line` 을 이미 실험했다). 세기는 3x3 기본의 2배(`strength: 2`), 비교 기준은 필터 없는 격자 없는 그림(`op: none`) | 사용자 결정: 수업 과제의 kernel 과 같은 연산이라 무엇을 겨냥하는지 설명하기 쉽다. 축과 눈금 숫자까지 필터가 걸리면 효과가 섞이므로 안쪽만 바꾼다. 3x3 은 그림 변화가 거의 보이지 않아 2배로 했다. 필터에 압축 흔적이 섞이지 않게 PNG 로 보낸다 (공식 chart 는 JPEG 이라 `tsrbench_baseline` 과의 차이에는 격자와 형식이 함께 들어 있다) |
+| 2026-11-23 | `perception_kernel` 의 세기를 `strength: 4` 로 올린다 (같은 날의 `strength: 2` 를 바꿈): sharpen 중앙 17, blur 9x9, edge 4배. chart 의 기본값(2)은 그대로 두고 yaml 에 적는다 | 사용자 결정: `strength: 2` 는 적용 전후 차이가 눈에 잘 보이지 않았다. blur 는 9x9 에서 뚜렷해진다. sharpen 은 plot 의 대비가 이미 최대라 세기를 올려도 그림이 거의 같다 (확대해야 보인다) |
 
 ## 5. 현재 상태
 
@@ -177,3 +178,4 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 | 2026-11-13 | 채점 오류 수정(adapter version 2), `max_tokens` 기본값을 공식과 같게 변경 |
 | 2026-11-14 | pack_source, 유료 비용 기능 삭제. README, 노트북, yaml 주석 정리 |
 | 2026-11-23 | `inner_filter` chart 와 `perception_kernel` 실험 추가 (4번, 5번) |
+| 2026-11-23 | `perception_kernel` 세기를 `strength: 4` 로 변경 (4번) |

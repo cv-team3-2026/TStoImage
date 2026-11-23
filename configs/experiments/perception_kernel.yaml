@@ -1,4 +1,4 @@
-# 격자 없는 선 그래프의 안쪽에만 수업 과제의 kernel 3개(sharpen, blur, edge)를 적용한다. 첫 chart(필터 없음)가 비교 기준이다.
+# 격자 없는 선 그래프의 안쪽에만 수업 과제의 kernel 3개(sharpen, blur, edge)를 적용한다. 세기는 3x3 기본의 4배(sharpen 중앙 17, blur 9x9, edge 4배). 첫 chart(필터 없음)가 비교 기준이다.
 # 그림 확인: python -m ts2img preview charts --exp perception_kernel --examples
 
 description: perception 격자 없는 plot 안쪽에 sharpen, blur, edge 적용
@@ -8,8 +8,8 @@ models: [qwen3-vl-4b]
 modalities: [vision, text+vision]
 charts:
   - {use: inner_filter, op: none, label: nogrid}
-  - {use: inner_filter, op: sharpen, label: sharpen}
-  - {use: inner_filter, op: blur, label: blur}
-  - {use: inner_filter, op: edge, label: edge}
+  - {use: inner_filter, op: sharpen, strength: 4, label: sharpen}
+  - {use: inner_filter, op: blur, strength: 4, label: blur}
+  - {use: inner_filter, op: edge, strength: 4, label: edge}
 sampling: official
 repeats: 1
