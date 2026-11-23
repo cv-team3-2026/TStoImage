@@ -44,6 +44,10 @@ ALL_CHARTS = [
     ChartSpec.parse("heatmap"),
     ChartSpec.parse("gaf"),
     ChartSpec.parse("spectrogram"),
+    ChartSpec.parse({"use": "inner_filter", "op": "sharpen"}),
+    ChartSpec.parse({"use": "inner_filter", "op": "blur"}),
+    ChartSpec.parse({"use": "inner_filter", "op": "edge"}),
+    ChartSpec.parse({"use": "inner_filter", "op": "erode"}),
 ]
 
 
