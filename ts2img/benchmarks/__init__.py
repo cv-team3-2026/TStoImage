@@ -7,6 +7,11 @@ from ts2img.benchmarks.base import Benchmark, Selection, merge_selections
 
 _REGISTRY = {
     "tsrbench": "ts2img.benchmarks.tsrbench.adapter:TSRBench",
+    "applied_metro": "ts2img.benchmarks.applied.adapter:AppliedMetro",
+    "applied_seoul": "ts2img.benchmarks.applied.adapter:AppliedSeoul",
+    "applied_kpx": "ts2img.benchmarks.applied.adapter:AppliedKpx",
+    "applied_metro_peak": "ts2img.benchmarks.applied.adapter:AppliedMetroPeak",
+    "applied_seoul_peak": "ts2img.benchmarks.applied.adapter:AppliedSeoulPeak",
 }
 
 

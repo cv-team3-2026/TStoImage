@@ -156,7 +156,10 @@ def start(spec: ModelSpec, wait: bool = True) -> dict:
     from ts2img import secrets
 
     cmd, extra_env = build_command(spec)
+    # venv 안의 ninja 가 PATH 에 없으면 FlashInfer JIT 가 서버 기동 중에 죽는다.
     env = {**os.environ, **extra_env}
+    venv_bin = str(venv_dir() / "bin")
+    env["PATH"] = venv_bin + os.pathsep + env.get("PATH", "")
     token = secrets.get("HF_TOKEN")
     if token:
         env["HF_TOKEN"] = token

@@ -1,0 +1,22 @@
+# 실제 시계열 3개에서 text 와 line chart 를 비교한다.
+# 데이터셋마다 벤치마크가 나뉘어 있어 정확도는 합쳐지지 않는다.
+# KPX CSV 가 없으면 실행이 멈춘다. 경로와 받는 곳은 오류 문구에 있다.
+
+description: >
+  실제 시계열에서 text 와 line chart 의 다음 날 수준 판단.
+  데이터셋마다 90문항. 월과 평일/주말로 나누어 뽑고, 예측일은 2일 이상 띄운다.
+  최근 4주(672시간)로 다음 24시간 평균이 직전 24시간보다
+  훨씬 낮음/낮음/비슷/높음/훨씬 높음인지 고른다.
+  sampling 은 TSRBench 와 같이 official.
+  text 와 vision 의 JSON schema 는 같고, reasoning 과 answer 를 둘 다 요구한다.
+
+benchmarks:
+  - applied_metro
+  - applied_seoul
+  - applied_kpx
+models: [qwen3-vl-4b]
+modalities: [text, vision]
+charts:
+  - tsrbench_baseline
+sampling: official
+repeats: 1

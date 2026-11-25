@@ -48,6 +48,8 @@ ALL_CHARTS = [
     ChartSpec.parse({"use": "inner_filter", "op": "blur"}),
     ChartSpec.parse({"use": "inner_filter", "op": "edge"}),
     ChartSpec.parse({"use": "inner_filter", "op": "erode"}),
+    ChartSpec.parse({"use": "combo", "layout": "row", "share_y": True, "scale": 3, "shade": True, "post": ["fade_grid", "dark_mode"]}),
+    ChartSpec.parse({"use": "combo", "layout": "stack", "share_y": True, "scale": 1, "shade": False}),
 ]
 
 

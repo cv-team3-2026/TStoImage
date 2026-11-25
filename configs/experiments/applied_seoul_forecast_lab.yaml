@@ -1,0 +1,16 @@
+# 따릉이 다음 날 수준. 대형 VLM 비교용. text / vision / text+vision.
+
+description: >
+  서울 공공자전거만. 직전 4주(672시간)로 다음 24시간 평균의 다섯 단계.
+  차트는 line_style scale 3. 90문항.
+  text, vision, text+vision 을 같은 문항으로 비교한다.
+  모델은 기본 qwen3-vl-4b. 대형 VLM 은 --models 로 바꾸거나 models.yaml 에 추가한다.
+
+benchmarks:
+  - applied_seoul
+models: [qwen3-vl-4b]
+modalities: [text, vision, text+vision]
+charts:
+  - {use: line_style, scale: 3}
+sampling: official
+repeats: 1

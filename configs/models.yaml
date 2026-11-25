@@ -8,7 +8,7 @@ models:
     serve:
       revision: ebb281ec70b05090aa6165b016eac8ec08e71b17
       dtype: float16            # T4 는 bfloat16 미지원
-      max_model_len: 8192       # perception 용. 다른 task 는 README 참고
+      max_model_len: 32768      # 넓은 applied 차트(이미지 토큰 ~1.5만). 8192면 잘린다
       limit_mm_per_prompt: {image: 4}
       gpus: [0]
       gpu_memory_utilization: 0.92
@@ -44,3 +44,9 @@ models:
     base_url_env: LAB_VLM_BASE_URL
     api_key_env: LAB_VLM_API_KEY         # 서버에 key 가 없으면 비워 둔다
     notes: "외부 서버 예시. 서버 설정: (여기에 기록)"
+
+  gemini-hydrogen:
+    model: gemini-4-hydrogen
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    api_key_env: GEMINI_API_KEY
+    notes: "Gemini 4 Hydrogen (OpenAI-compatible)"

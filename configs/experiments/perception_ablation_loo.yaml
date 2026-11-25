@@ -1,0 +1,19 @@
+# full 에서 요소를 하나씩 뺀다. 첫 chart 가 비교 기준이라 보고서의 차이는 full 대비다.
+# full 은 perception_ablation 과 같은 그림이라 이미 돈 문항은 건너뛴다.
+# 그림 확인: python -m ts2img preview charts --exp perception_ablation_loo --examples
+
+description: perception 조합 chart 에서 요소를 하나씩 제거
+benchmarks:
+  - tsrbench/perception
+models: [qwen3-vl-4b]
+modalities: [vision, text+vision]
+charts:
+  - {use: combo, layout: row, share_y: true, scale: 3, shade: true, post: [fade_grid, dark_mode], label: full}
+  - {use: combo, layout: stack, share_y: true, scale: 3, shade: true, post: [fade_grid, dark_mode], label: minus_panel_row}
+  - {use: combo, layout: row, share_y: false, scale: 3, shade: true, post: [fade_grid, dark_mode], label: minus_shared_y}
+  - {use: combo, layout: row, share_y: true, scale: 1, shade: true, post: [fade_grid, dark_mode], label: minus_scale}
+  - {use: combo, layout: row, share_y: true, scale: 3, shade: true, post: [dark_mode], label: minus_fade_grid}
+  - {use: combo, layout: row, share_y: true, scale: 3, shade: true, post: [fade_grid], label: minus_dark_mode}
+  - {use: combo, layout: row, share_y: true, scale: 3, shade: false, post: [fade_grid, dark_mode], label: minus_shade_jumps}
+sampling: official
+repeats: 1

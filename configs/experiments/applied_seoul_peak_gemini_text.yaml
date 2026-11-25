@@ -1,0 +1,14 @@
+# 따릉이 재배치 피크. applied_seoul_peak_gemini 와 동일 문항·모델, text 만.
+
+description: >
+  서울 공공자전거 7일 대여량과 내일 기상예보를 숫자 표로 주고,
+  내일 시간당 1000대 이상인 시각을 모두 배열로 고른다.
+  applied_seoul_peak_gemini 와 같은 60문항·Gemini Hydrogen. text 단독.
+  sampling 은 official.
+
+benchmarks:
+  - applied_seoul_peak
+models: [gemini-hydrogen]
+modalities: [text]
+sampling: official
+repeats: 1

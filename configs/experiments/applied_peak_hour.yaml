@@ -1,0 +1,15 @@
+# 교통량만. 내일 최대 통행량이 나오는 시각을 vision 으로 맞춘다. ±1시간이면 정답.
+
+description: >
+  교통량 차트에서 내일 피크 시각(0–23시)을 고른다.
+  직전 14일을 날짜 눈금으로 보여 준다. 채점은 ±1시간.
+  90문항, 예측일 간격 2일, sampling 은 official.
+
+benchmarks:
+  - applied_metro_peak
+models: [qwen3-vl-4b]
+modalities: [vision]
+charts:
+  - clock_days
+sampling: official
+repeats: 1

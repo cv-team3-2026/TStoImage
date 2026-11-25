@@ -41,6 +41,101 @@ def _safe(name: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", name).strip("_")
 
 
+def _hour_close(a: str, b: str) -> bool:
+    try:
+        ah, bh = int(a), int(b)
+    except (TypeError, ValueError):
+        return False
+    diff = abs(ah - bh) % 24
+    return min(diff, 24 - diff) <= 1
+
+
+def _hour_rule(samples, key: str):
+    """raw[key] 의 시각이 정답 시각과 ±1시간이면 맞힌 것. 키가 없으면 None."""
+    if not samples:
+        return None
+    hits = []
+    for s in samples:
+        raw = getattr(s, "raw", None) or {}
+        if key not in raw:
+            return None
+        hits.append(_hour_close(s.answer, raw[key]))
+    return sum(hits) / len(hits)
+
+
+def _rule_accuracy(samples, key: str):
+    """sample.raw[key] 를 그대로 답으로 썼을 때의 정확도. 한 문항이라도 키가 없으면 None."""
+    if not samples:
+        return None
+    letters = []
+    for s in samples:
+        raw = getattr(s, "raw", None) or {}
+        if key not in raw:
+            return None
+        letters.append(str(raw[key]))
+    return sum(s.answer == p for s, p in zip(samples, letters)) / len(samples)
+
+
+def _parse_hours(text: str) -> set[int]:
+    return {int(h) for h in str(text).split(",") if h != ""}
+
+
+def _hours_f1(samples, key: str):
+    """sample.raw[key] 시간 집합의 평균 F1. 한 문항이라도 키가 없으면 None."""
+    from ts2img.benchmarks.applied.peak import set_f1
+
+    if not samples:
+        return None
+    scores = []
+    for s in samples:
+        raw = getattr(s, "raw", None) or {}
+        if key not in raw:
+            return None
+        scores.append(set_f1(_parse_hours(raw[key]), _parse_hours(s.answer)))
+    return sum(scores) / len(scores)
+
+
+def _fixed_hours_f1(samples, hours: list[int]):
+    from ts2img.benchmarks.applied.peak import set_f1
+
+    if not samples or not all("naive_hours_week" in (getattr(s, "raw", None) or {}) for s in samples):
+        return None
+    pred = set(hours)
+    return sum(set_f1(pred, _parse_hours(s.answer)) for s in samples) / len(samples)
+
+
+def _reference_lines(samples) -> list[str]:
+    lines = []
+    set_task = bool(samples) and all("naive_hours_week" in (getattr(s, "raw", None) or {}) for s in samples)
+    maj = None if set_task else stats.majority_baseline([s.answer for s in samples])
+    if maj:
+        lines.append(f"최빈 정답({maj[0]})만 찍으면 {_pct(maj[1])}%")
+    persist = _rule_accuracy(samples, "naive_persist")
+    if persist is not None:
+        lines.append(f"직전 24시간과 같다(C)고 하면 {_pct(persist)}%")
+    week = _rule_accuracy(samples, "naive_week")
+    if week is not None:
+        lines.append(f"7일 전 같은 요일 수준을 고르면 {_pct(week)}%")
+    for key, label in (
+        ("naive_hour_yesterday", "어제 피크 시각을 ±1시간으로 맞추면"),
+        ("naive_hour_week", "7일 전 피크 시각을 ±1시간으로 맞추면"),
+    ):
+        hit = _hour_rule(samples, key)
+        if hit is not None:
+            lines.append(f"{label} {_pct(hit)}%")
+    for key, label in (
+        ("naive_hours_yesterday", "어제 95% 피크 시간을 그대로 쓰면"),
+        ("naive_hours_week", "7일 전 95% 피크 시간을 그대로 쓰면"),
+    ):
+        hit = _hours_f1(samples, key)
+        if hit is not None:
+            lines.append(f"{label} {_pct(hit)}%")
+    fixed = _fixed_hours_f1(samples, [16])
+    if fixed is not None:
+        lines.append(f"무조건 16시면 {_pct(fixed)}%")
+    return lines
+
+
 class _Group:
     """(benchmark, model, modality) 하나. chart label -> repeat -> {문항 id: 기록}."""
 
@@ -300,17 +395,19 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
             ])
         md += [_md_table(["chart", "문항 수", "정확도 % [95% CI]", "차이 %p [95% CI]", "얻음 / 잃음", "p", "p (Holm)", "공식 방식 %", "답 없음", "처리율"], table), ""]
 
-        # 기준선
-        answers = [s.answer for s in g.samples.values()]
-        maj = stats.majority_baseline(answers)
-        refs = []
-        if maj:
-            refs.append(f"최빈 정답({maj[0]})만 찍으면 {_pct(maj[1])}%")
+        # 기준선. naive_* 가 있는 벤치마크(applied)만 규칙 기준선이 붙는다.
+        refs = _reference_lines(list(g.samples.values()))
         tg = text_groups.get((g.bench, g.model))
         if tg:
             ts = stats.summarize(list(tg.recs("none").values()))
             if ts["n_done"]:
                 refs.append(f"text 만 입력(chart 없음) {_pct(ts['acc'])}% {_ci(ts['ci'])}, {ts['n_done']}문항")
+                pr = stats.paired(tg.recs("none"), g.recs(base_label))
+                if pr["n"]:
+                    refs.append(
+                        f"text 대비 {g.modality}({base_label}) {100 * pr['diff']:+.1f}%p "
+                        f"(text 틀림·이 조건 맞음 {pr['gained']} / text 맞음·이 조건 틀림 {pr['lost']}, p {_p(pr['p'])})"
+                    )
         if refs:
             md += ["기준선: " + " / ".join(refs), ""]
 
@@ -391,6 +488,9 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
                _md_table(["문항 수", "정확도 % [95% CI]", "공식 방식 %", "답 없음", "context 초과", "처리율"],
                          [[s["n_done"], f"{_pct(s['acc'])} {_ci(s['ci'])}", _pct(s["acc_official"]), s["no_answer"], s["n_overflow"],
                            f"{100 * s['n_done'] / max(1, len(tg.samples)):.0f}%"]]), ""]
+        bits = _reference_lines(list(tg.samples.values()))
+        if bits:
+            md += ["기준선: " + " / ".join(bits), ""]
         tasks = sorted({x.task for x in tg.samples.values()})
         if len(tasks) > 1:
             rows = []

@@ -1,0 +1,18 @@
+# 따릉이 재배치 피크. 대형 VLM 비교용. text / vision / text+vision.
+
+description: >
+  서울 공공자전거 7일 대여량과 내일 기상예보로,
+  내일 시간당 1000대 이상인 시각을 모두 배열로 고른다.
+  차트는 bike_peak scale 3 (대여량|기상 가로 배치).
+  전환일 우선 60문항. 채점은 집합 F1.
+  text, vision, text+vision 을 같은 문항으로 비교한다.
+  모델은 기본 qwen3-vl-4b. 대형 VLM 은 --models 로 바꾸거나 models.yaml 에 추가한다.
+
+benchmarks:
+  - applied_seoul_peak
+models: [qwen3-vl-4b]
+modalities: [text, vision, text+vision]
+charts:
+  - {use: bike_peak, scale: 3}
+sampling: official
+repeats: 1

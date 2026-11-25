@@ -112,7 +112,7 @@ def test_serve_command():
     assert cmd[:3] == ["python", "-m", "vllm.entrypoints.openai.api_server"]
     opt = {cmd[i]: cmd[i + 1] for i in range(3, len(cmd) - 1) if cmd[i].startswith("--")}
     assert opt["--model"] == "Qwen/Qwen3-VL-4B-Instruct" and opt["--served-model-name"] == "Qwen/Qwen3-VL-4B-Instruct"
-    assert opt["--dtype"] == "float16" and opt["--max-model-len"] == "8192"
+    assert opt["--dtype"] == "float16" and opt["--max-model-len"] == "32768"
     assert opt["--revision"] == spec.serve["revision"] and len(opt["--revision"]) == 40
     assert opt["--limit-mm-per-prompt"] == '{"image": 4}'
     assert env["CUDA_VISIBLE_DEVICES"] == "0"

@@ -84,6 +84,8 @@ def run_sample(sample, ctx: RunContext, image_captions: bool = True) -> dict:
         rec["error"] = str(e)
         return rec
 
+    if score.f1 is not None:
+        rec["f1"] = score.f1
     rec.update(
         status="ok", pred=score.pred, parse=score.parse, correct=score.correct, response=comp.text,
         attempts=attempt + 1, finish_reason=comp.finish_reason, latency_s=round(latency, 3),
