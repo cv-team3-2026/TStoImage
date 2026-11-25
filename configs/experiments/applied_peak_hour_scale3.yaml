@@ -1,0 +1,16 @@
+# 피크 시각 vision. 차트만 가로세로 3배.
+
+description: >
+  교통량 차트에서 내일 최대의 95% 이상인 시간을 모두 배열로 고른다.
+  최근 2주를 주마다 3배 크기의 차트로 나누고, 오래된 주부터 가로로 배치한다.
+  시간 세로선과 가로축 눈금 글자는 없다. 채점은 시간 집합의 F1.
+  90문항, sampling 은 official.
+
+benchmarks:
+  - applied_metro_peak
+models: [qwen3-vl-4b]
+modalities: [vision]
+charts:
+  - {use: clock_days, scale: 3}
+sampling: official
+repeats: 1

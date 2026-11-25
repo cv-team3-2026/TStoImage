@@ -1,0 +1,17 @@
+# 직전 4주 다음 날 수준. vision 만, 공식 차트를 가로세로 3배로 키운다.
+
+description: >
+  실제 시계열 vision. 차트는 line_style scale 3.
+  데이터셋마다 90문항. 최근 4주(672시간)로 다음 24시간 평균의 다섯 단계.
+  sampling 은 official. JSON 은 reasoning 과 answer.
+
+benchmarks:
+  - applied_metro
+  - applied_seoul
+  - applied_kpx
+models: [qwen3-vl-4b]
+modalities: [vision]
+charts:
+  - {use: line_style, scale: 3}
+sampling: official
+repeats: 1

@@ -54,6 +54,7 @@ class Score:
     pred: str | None       # 추출한 답 (대문자 한 글자)
     correct: bool
     parse: str | None      # "json" | "fallback" | None(추출 실패)
+    f1: float | None = None  # 있으면 정확도는 정오 비율 대신 이 값의 평균
 
 
 @dataclass

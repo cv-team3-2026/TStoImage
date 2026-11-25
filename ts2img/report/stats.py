@@ -64,6 +64,19 @@ def _mean(xs: list[float]) -> float | None:
     return sum(xs) / len(xs) if xs else None
 
 
+def _mean_ci(xs: list[float]) -> tuple[float, float] | None:
+    """평균의 95% 구간. 비율이 아니라 문항별 점수의 평균일 때 쓴다."""
+    if not xs:
+        return None
+    n = len(xs)
+    mid = sum(xs) / n
+    if n < 2:
+        return mid, mid
+    var = sum((x - mid) ** 2 for x in xs) / (n - 1)
+    half = 1.96 * math.sqrt(var / n)
+    return max(0.0, mid - half), min(1.0, mid + half)
+
+
 def summarize(records: list[dict]) -> dict:
     """run 하나(또는 그 일부)의 지표.
 
@@ -71,10 +84,22 @@ def summarize(records: list[dict]) -> dict:
     acc_official: 공식 채점 방식. dict 로 읽힌 응답만 분모에 넣는다.
     """
     ok = [r for r in records if r.get("status") == "ok"]
-    n_done = sum(1 for r in records if r.get("status") in _SCORED)
+    scored = [r for r in records if r.get("status") in _SCORED]
+    n_done = len(scored)
     as_json = [r for r in ok if r.get("parse") == "json"]
     correct = sum(1 for r in ok if r.get("correct"))
     correct_json = sum(1 for r in as_json if r.get("correct"))
+    f1_mode = any("f1" in r for r in scored)
+    if f1_mode:
+        vals = [float(r.get("f1") or 0.0) for r in scored]
+        acc = sum(vals) / len(vals)
+        ci = _mean_ci(vals)
+        json_vals = [float(r["f1"]) for r in as_json if r.get("f1") is not None]
+        acc_official = sum(json_vals) / len(json_vals) if json_vals else None
+    else:
+        acc = correct / n_done if n_done else None
+        ci = wilson(correct, n_done)
+        acc_official = correct_json / len(as_json) if as_json else None
     images = [im for r in ok for im in r.get("images") or []]
     latencies = [r["latency_s"] for r in ok if r.get("latency_s") is not None]
     return {
@@ -84,9 +109,9 @@ def summarize(records: list[dict]) -> dict:
         "n_error": sum(1 for r in records if r.get("status") == "error"),
         "n_overflow": sum(1 for r in records if r.get("status") == "context_overflow"),
         "correct": correct,
-        "acc": correct / n_done if n_done else None,
-        "ci": wilson(correct, n_done),
-        "acc_official": correct_json / len(as_json) if as_json else None,
+        "acc": acc,
+        "ci": ci,
+        "acc_official": acc_official,
         "no_answer": sum(1 for r in ok if r.get("pred") is None),
         "non_json": len(ok) - len(as_json),
         "truncated": sum(1 for r in ok if r.get("finish_reason") == "length"),

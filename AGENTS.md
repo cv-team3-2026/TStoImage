@@ -105,6 +105,13 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 | 2026-11-14 | 유료 API 비용 기능 삭제: `paid`, `pricing.yaml`, `estimate`, `--budget-usd` (2026-11-12 결정을 바꿈) | 한 번도 쓰지 않았고 구조만 복잡하게 했다. 상용 API 는 외부 URL 로 계속 호출할 수 있다. 대가: 지출 상한이 없으니 `--limit` 으로 직접 줄인다 |
 | 2026-11-14 | 노트북 구조: A. Colab 준비 / B. 서버 준비 중 하나 실행 후 공통 실행, 진행, 결과. 미리보기는 부록. 출력 없이 commit | 환경별 차이는 준비 단계뿐이다. 실행 셀을 환경별로 두면 두 벌이 어긋난다 |
 | 2026-11-14 | 설정 파일과 문서의 주석을 최소화. 설명은 README 한 곳에 | 같은 설명이 yaml, 노트북, 문서에 반복돼 읽기 어려웠다. Hydra 는 hash/재개 구조와 맞지 않아 쓰지 않는다 |
+| 2026-11-25 | `applied_forecast`: metro, seoul bike, kpx 를 벤치마크 3개로 나눠 text 대 vision 만 비교. sampling 은 official. schema 는 reasoning+answer. 문항은 최근 168시간으로 다음 24시간 평균의 다섯 단계. KPX CSV 는 수동 (`ts2img/benchmarks/applied/README.md`) | 차트 스타일이 아니라 plot 대 text 를 실제 예측에서 본다. 데이터셋 점수는 합치지 않는다. answer 만 요구하면 풀이 유무가 비교에 섞인다. |
+| 2026-11-25 | `applied_forecast` 창을 직전 4주(672시간)로 바꿈. 문항은 90개, 예측일 간격 2일. benchmark version 2, revision `next-day-level-v2`. 7일 실험 결과는 쓰지 않는다 | 7일에는 같은 요일이 한 번이라 반복이 보이지 않는다. 4주면 네 번 보인다. 교통량은 4주가 빈틈 없이 이어진 날이 196일이라 150개를 간격 2일로 채우지 못한다. 세 데이터의 간격을 같게 두려고 90으로 맞춘다. version 을 올려 이전 답과 섞이지 않게 한다. |
+| 2026-11-25 | `applied_forecast_scale3`: 같은 문항을 vision 과 `line_style scale 3` 만으로 돌린다. 본 실험 yaml 은 공식 차트 그대로 | perception 에서 그림 3배 확대가 text+vision 에 +4.0%p 였다. 차트만 바꾼 비교라 문항 version 은 그대로 둔다. |
+| 2026-11-25 | `applied_peak_hour`: 교통량만, 내일 피크 시각(0–23시)을 vision 으로 맞춘다. 직전 14일, 자정 세로선. 채점은 ±1시간. 90문항 | 24시간 평균은 하루 파도에 묻힌다. 7일 전 시각을 베끼면 54%이고, 최근 평일 봉우리의 오전·오후를 보면 67%까지다. 그 위는 1·2등 시각이 비슷해 정답이 흔들린다 |
+| 2026-11-25 | `applied_seoul_peak`: 따릉이 재배치 피크(≥1000대/시) 시각 집합 F1. 7일+내일 기상예보, vision, `bike_peak` scale3 가로 2패널. 전환일 우선 60문항 | Metro는 계절 naive가 너무 높다. 날씨·휴일 전환에서 vision 우위를 보려 한다. perception 에서 이득이 있던 3배+가로 배치를 쓴다 |
+| 2026-11-25 | `applied_seoul_peak_gemini`: 위와 동일 조건, 모델만 `gemini-hydrogen` (OpenAI-compatible Gemini API) | Qwen 4B vision 상한을 상용 모델과 비교한다 |
+| 2026-11-25 | 대형 VLM 용 lab 실험 2개: `applied_seoul_peak_lab`, `applied_seoul_forecast_lab` (text/vision/text+vision, `lab-vlm`) | 다른 PC 에서 baseline 격파 여부를 본다. forecast 는 Seoul+scale3 이 4B 기준 가장 유망했다 |
 
 ## 5. 현재 상태
 
@@ -124,6 +131,7 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 1. 새 기본값(`max_tokens` 없음, adapter version 2)으로 perception 만 짧게 돌려 속도와 잘림 건수를 확인한다: `run perception_baseline --limit 20 --repeats 1 --auto-serve`.
 2. `perception_baseline` 실행. 반복 간 흔들림과 text / vision / text+vision 기준 성능 확인. smoke 의 속도(perception 분당 약 4건)로는 6,300건에 하루 이상 걸리므로 `--limit` 이나 `repeats` 를 줄이거나 연구실 서버를 쓴다.
 3. `perception_augment` 실행, 보고서 검토, chart 아이디어 추가.
+4. `applied_forecast` 실행. KPX CSV 는 `data/applied/kpx/hourly.csv`. 없으면 `--benchmarks applied_metro,applied_seoul`. 설명은 `ts2img/benchmarks/applied/README.md`.
 
 ## 6. 작업 규칙
 
@@ -174,3 +182,23 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 | 2026-11-13 | Colab 에서 실제 모델(`qwen3-vl-4b`)로 smoke 실행. 확인된 내용을 3번으로 옮기고 5번을 줄임 |
 | 2026-11-13 | 채점 오류 수정(adapter version 2), `max_tokens` 기본값을 공식과 같게 변경 |
 | 2026-11-14 | pack_source, 유료 비용 기능 삭제. README, 노트북, yaml 주석 정리 |
+| 2026-11-25 | applied_forecast 설정을 추가. 모델 실행 전 |
+| 2026-11-25 | applied_forecast 입력 창을 168시간에서 672시간으로 변경 (version 2) |
+| 2026-11-25 | applied_forecast_scale3 추가. vision 과 차트 3배만 |
+| 2026-11-25 | applied_peak_hour 추가. 교통량 피크 시각, vision, ±1시간 |
+| 2026-11-25 | applied_peak_hour_scale3 추가. 같은 문항, clock_days scale 3 |
+| 2026-11-25 | 피크 시각 입력을 4주로 늘리고 주 시작 세로선을 굵게 함 (peak-hour-v2) |
+| 2026-11-25 | 4주를 주별 3배 차트 4장으로 가로 배치 (peak-hour-v3). qwen3-vl-4b context 32768 |
+| 2026-11-25 | 피크 문항을 95% 시간 집합의 F1로 바꿈 (peak-hours-v1). 차트는 v3 과 같음 |
+| 2026-11-25 | 주별 차트 4장 사이에 간격을 두고 테두리를 넣음 (clock_days v4) |
+| 2026-11-25 | 주별 차트에 00:00, 06h, 12h, 18h 눈금을 넣음 (clock_days v5) |
+| 2026-11-25 | 주별 차트에 3시간마다 세로선을 넣음. 글자는 6시간 간격 (clock_days v6) |
+| 2026-11-25 | 차트는 최근 3주만 보여주고 시각 숫자 라벨을 뺌 (clock_days v7). 실험은 아직 안 돌림 |
+| 2026-11-25 | 주별 차트 x축을 데이터 시작·끝에 맞춤 (clock_days v8) |
+| 2026-11-25 | 질문을 3주 차트(자정 짙은 선, 3시간 옅은 선)에 맞추고, 95% 시각을 모두 배열로 내라고 함 (peak-hours-v3) |
+| 2026-11-25 | 차트는 최근 2주, 시간 세로선과 가로축 글자 없음 (clock_days v9, peak-hours-v4). 실험은 아직 안 돌림 |
+| 2026-11-25 | 2주 차트의 오른쪽 패널에도 vehicles 축을 붙임 (clock_days v10) |
+| 2026-11-25 | applied_seoul_peak_scale3 추가. 따릉이 ≥1000대 피크 시각, bike_peak scale3 |
+| 2026-11-25 | applied_seoul_peak_gemini 추가. 동일 문항·차트, 모델만 gemini-hydrogen |
+| 2026-11-25 | applied_seoul_peak_gemini_text 추가. 동일 문항·모델, text 표 입력 |
+| 2026-11-25 | applied_seoul_peak_lab / applied_seoul_forecast_lab 추가. 노트북·README 다운로드 안내 |

@@ -1,0 +1,17 @@
+# 따릉이 재배치 피크 시각. applied_seoul_peak_scale3 과 동일 조건, 모델만 Gemini Hydrogen.
+
+description: >
+  서울 공공자전거 7일 대여량과 내일 기상예보 차트로,
+  내일 시간당 1000대 이상인 시각을 모두 배열로 고른다.
+  차트는 TSRBench baseline 선 스타일, scale 3, 대여량|기상 가로 배치.
+  전환일(강수·기온·휴일)을 우선 뽑은 60문항. 채점은 집합 F1.
+  sampling 은 official. 모델은 Gemini 4 Hydrogen.
+
+benchmarks:
+  - applied_seoul_peak
+models: [gemini-hydrogen]
+modalities: [vision]
+charts:
+  - {use: bike_peak, scale: 3}
+sampling: official
+repeats: 1

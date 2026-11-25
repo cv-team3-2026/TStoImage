@@ -8,7 +8,7 @@ models:
     serve:
       revision: ebb281ec70b05090aa6165b016eac8ec08e71b17
       dtype: float16            # T4 는 bfloat16 미지원
-      max_model_len: 8192       # perception 용. 다른 task 는 README 참고
+      max_model_len: 32768      # 4주 패널 차트는 이미지 토큰이 약 1.5만. 8192면 잘린다
       limit_mm_per_prompt: {image: 4}
       gpus: [0]
       gpu_memory_utilization: 0.92
@@ -38,9 +38,18 @@ models:
       gpu_memory_utilization: 0.92
       port: 8000
 
-  # 외부 서버. secrets.env 에 LAB_VLM_BASE_URL=http://<주소>:8000/v1
+  # 외부/다른 PC 의 대형 VLM. secrets.env:
+  #   LAB_VLM_BASE_URL=http://<주소>:8000/v1
+  #   LAB_VLM_API_KEY=   # 서버에 key 가 없으면 비워 둔다
+  # model 값은 그 서버의 --served-model-name / 모델 id 와 같아야 한다.
   lab-vlm:
-    model: Qwen/Qwen3-VL-8B-Instruct     # 서버의 model 이름과 같아야 한다
+    model: Qwen/Qwen3-VL-8B-Instruct
     base_url_env: LAB_VLM_BASE_URL
-    api_key_env: LAB_VLM_API_KEY         # 서버에 key 가 없으면 비워 둔다
-    notes: "외부 서버 예시. 서버 설정: (여기에 기록)"
+    api_key_env: LAB_VLM_API_KEY
+    notes: "다른 컴퓨터의 OpenAI-compatible VLM. applied_*_lab 실험 기본 모델"
+
+  gemini-hydrogen:
+    model: gemini-4-hydrogen
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+    api_key_env: GEMINI_API_KEY
+    notes: "Gemini 4 Hydrogen. OpenAI-compatible endpoint"
