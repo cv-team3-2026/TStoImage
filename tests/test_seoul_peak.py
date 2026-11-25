@@ -131,7 +131,7 @@ def test_lab_experiments_cover_three_modalities():
     forecast = expand(load_experiment(EXPERIMENTS / "applied_seoul_forecast_lab.yaml"), load_models())
     assert {c.modality for c in peak} == {"text", "vision", "text+vision"}
     assert {c.modality for c in forecast} == {"text", "vision", "text+vision"}
-    assert all(c.model.key == "lab-vlm" for c in peak + forecast)
+    assert all(c.model.key == "qwen3-vl-4b" for c in peak + forecast)
     assert {c.chart.use for c in peak if c.modality != "text"} == {"bike_peak"}
     assert {c.chart.use for c in forecast if c.modality != "text"} == {"line_style"}
     assert all(c.benchmark == "applied_seoul" for c in forecast)

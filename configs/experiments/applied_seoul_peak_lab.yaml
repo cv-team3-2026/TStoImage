@@ -6,11 +6,11 @@ description: >
   차트는 bike_peak scale 3 (대여량|기상 가로 배치).
   전환일 우선 60문항. 채점은 집합 F1.
   text, vision, text+vision 을 같은 문항으로 비교한다.
-  모델은 lab-vlm (다른 서버의 대형 VLM). secrets.env 의 LAB_VLM_* 를 맞춘다.
+  모델은 기본 qwen3-vl-4b. 대형 VLM 은 --models 로 바꾸거나 models.yaml 에 추가한다.
 
 benchmarks:
   - applied_seoul_peak
-models: [lab-vlm]
+models: [qwen3-vl-4b]
 modalities: [text, vision, text+vision]
 charts:
   - {use: bike_peak, scale: 3}
