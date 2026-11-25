@@ -13,25 +13,21 @@
 
 ## 데이터 받기
 
-Seoul 실험만 다른 컴퓨터에서 돌릴 때:
+따릉이 실험용 CSV 는 스크립트로 받는다 (이미 있으면 건너뜀).
 
 ```bash
-python -m ts2img download applied_seoul applied_seoul_peak
+python tools/download_applied_seoul.py
 ```
 
 - 저장 위치: `data/applied/seoul_bike/SeoulBikeData.csv`
-- 출처: [UCI Seoul Bike Sharing Demand](https://archive.ics.uci.edu/dataset/560/seoul+bike+sharing+demand)
-- 네트워크가 되면 `run` / `ensure_data` 가 없어도 zip 을 받아 푼다. 위 명령은 미리 받아 두는 용도다.
 - `data/` 는 git 에 올리지 않는다.
 
-Metro 도 필요하면:
+Metro / KPX:
 
 ```bash
-python -m ts2img download applied_metro applied_seoul applied_seoul_peak
+python -m ts2img download applied_metro
+# KPX 는 자동 다운로드 없음 → data/applied/kpx/hourly.csv 직접
 ```
-
-KPX 는 자동 다운로드가 없다. `data/applied/kpx/hourly.csv` 를 직접 둔다.
-받는 곳: [공공데이터포털 시간별 전국 전력수요량](https://www.data.go.kr/data/15065266/fileData.do).
 
 ## 대형 VLM 비교용 실험 (lab)
 
@@ -42,19 +38,17 @@ KPX 는 자동 다운로드가 없다. `data/applied/kpx/hourly.csv` 를 직접 
 | `applied_seoul_peak_lab` | 내일 ≥1000대/시 피크 시각 집합 (F1), 60문항 | `bike_peak` scale 3 | text, vision, text+vision |
 | `applied_seoul_forecast_lab` | 다음 24h 평균 5단계 (A–E), 90문항 | `line_style` scale 3 | text, vision, text+vision |
 
-1. `configs/models.yaml` 의 `lab-vlm.model` 을 서버 모델 이름으로 바꾼다.
-2. `secrets.env` 에 `LAB_VLM_BASE_URL=http://<호스트>:8000/v1` (필요하면 `LAB_VLM_API_KEY`).
-3. 데이터를 받은 뒤 실행한다.
+데이터를 받은 뒤, 쓸 모델을 `configs/models.yaml` 에 추가하고 `--models <key>` 로 지정한다.
 
 ```bash
-python -m ts2img download applied_seoul applied_seoul_peak
-python -m ts2img run applied_seoul_peak_lab --background
-python -m ts2img run applied_seoul_forecast_lab --background
-python -m ts2img report applied_seoul_peak_lab
-python -m ts2img report applied_seoul_forecast_lab
+python tools/download_applied_seoul.py
+python -m ts2img run applied_seoul_peak_lab --models <내모델> --background
+python -m ts2img run applied_seoul_forecast_lab --models <내모델> --background
+python -m ts2img report applied_seoul_peak_lab --models <내모델>
+python -m ts2img report applied_seoul_forecast_lab --models <내모델>
 ```
 
-짧게 확인: `--limit 5`. 로컬 4B 로 시험만 할 때는 `--models qwen3-vl-4b --auto-serve`.
+짧게 확인: `--limit 5 --auto-serve` (기본 모델 qwen3-vl-4b).
 
 ## 문항 요약
 
