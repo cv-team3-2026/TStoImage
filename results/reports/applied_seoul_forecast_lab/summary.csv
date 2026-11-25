@@ -1,0 +1,7 @@
+﻿benchmark,model,modality,chart,repeat,task,n_done,correct,acc,ci_lo,ci_hi,acc_official,no_answer,non_json,n_error,n_overflow,hash
+applied_seoul,qwen3-vl-4b,vision,line_style(scale=3),0,ALL,90,29,0.32222222222222224,0.23466628727198596,0.42433355927794497,0.32222222222222224,0,0,0,0,e1e1811a
+applied_seoul,qwen3-vl-4b,vision,line_style(scale=3),0,seoul_bike,90,29,0.32222222222222224,0.23466628727198596,0.42433355927794497,0.32222222222222224,0,0,0,0,e1e1811a
+applied_seoul,qwen3-vl-4b,text+vision,line_style(scale=3),0,ALL,0,0,,,,,0,0,0,0,94adb3e6
+applied_seoul,qwen3-vl-4b,text+vision,line_style(scale=3),0,seoul_bike,0,0,,,,,0,0,0,0,94adb3e6
+applied_seoul,qwen3-vl-4b,text,none,0,ALL,0,0,,,,,0,0,0,0,6065780c
+applied_seoul,qwen3-vl-4b,text,none,0,seoul_bike,0,0,,,,,0,0,0,0,6065780c

@@ -1,0 +1,9 @@
+﻿benchmark,model,modality,chart,repeat,task,n_done,correct,acc,ci_lo,ci_hi,acc_official,no_answer,non_json,n_error,n_overflow,hash
+applied_seoul_peak,gemini-hydrogen,vision,bike_peak(scale=3),0,ALL,60,27,0.8675713480244903,0.8130626172411579,0.9220800788078227,0.8675713480244903,0,0,0,0,3ad3713c
+applied_seoul_peak,gemini-hydrogen,vision,bike_peak(scale=3),0,seoul_bike,60,27,0.8675713480244903,0.8130626172411579,0.9220800788078227,0.8675713480244903,0,0,0,0,3ad3713c
+applied_seoul_peak,qwen3-vl-4b,vision,bike_peak(scale=3),0,ALL,60,11,0.3681068008322078,0.273242253769724,0.46297134789469163,0.3681068008322078,0,0,0,0,90f3b5d7
+applied_seoul_peak,qwen3-vl-4b,vision,bike_peak(scale=3),0,seoul_bike,60,11,0.3681068008322078,0.273242253769724,0.46297134789469163,0.3681068008322078,0,0,0,0,90f3b5d7
+applied_seoul_peak,gemini-hydrogen,text,none,0,ALL,60,28,0.8792872208816013,0.8246659111307884,0.9339085306324142,0.8792872208816013,0,0,0,0,3d588a63
+applied_seoul_peak,gemini-hydrogen,text,none,0,seoul_bike,60,28,0.8792872208816013,0.8246659111307884,0.9339085306324142,0.8792872208816013,0,0,0,0,3d588a63
+applied_seoul_peak,qwen3-vl-4b,text,none,0,ALL,0,0,,,,,0,0,0,0,9c2d2237
+applied_seoul_peak,qwen3-vl-4b,text,none,0,seoul_bike,0,0,,,,,0,0,0,0,9c2d2237
