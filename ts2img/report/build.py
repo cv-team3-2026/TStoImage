@@ -41,6 +41,60 @@ def _safe(name: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", name).strip("_")
 
 
+def _csv_row(bench, model, modality, chart, rep, task, s, hash_str) -> dict:
+    return {
+        "benchmark": bench, "model": model, "modality": modality, "chart": chart,
+        "repeat": rep, "task": task,
+        "n_done": s["n_done"], "correct": s["correct"], "acc": s["acc"],
+        "ci_lo": s["ci"][0] if s["ci"] else None, "ci_hi": s["ci"][1] if s["ci"] else None,
+        "acc_official": s["acc_official"], "no_answer": s["no_answer"], "non_json": s["non_json"],
+        "n_error": s["n_error"], "n_overflow": s["n_overflow"],
+        "prompt_tokens_mean": s["prompt_tokens"],
+        "prompt_tokens_total": s["total_prompt_tokens"],
+        "completion_tokens_mean": s["completion_tokens"],
+        "completion_tokens_total": s["total_completion_tokens"],
+        "latency_median_s": s["latency_median"],
+        "latency_total_s": s["latency_total"],
+        "hash": hash_str,
+    }
+
+
+def _cost_compare_section(groups: dict, ordered_charts: list[str]) -> list[str]:
+    """여러 lookback 벤치가 있을 때 text vs vision 토큰·시간 한눈에 보기."""
+    rows = []
+    for g in groups.values():
+        labels = (["none"] if g.modality == "text" else [lb for lb in ordered_charts if lb in g.records])
+        for lb in labels:
+            s = stats.summarize(list(g.recs(lb).values()))
+            if not s["n_done"]:
+                continue
+            rows.append([
+                g.bench, g.model, g.modality, lb,
+                "-" if s["prompt_tokens"] is None else f"{s['prompt_tokens']:.0f}",
+                f"{s['total_prompt_tokens']:.0f}",
+                "-" if s["completion_tokens"] is None else f"{s['completion_tokens']:.0f}",
+                f"{s['total_completion_tokens']:.0f}",
+                "-" if s["latency_median"] is None else f"{s['latency_median']:.1f}",
+                "-" if s["latency_total"] is None else f"{s['latency_total']:.0f}",
+                _pct(s["acc"]), s["n_overflow"],
+            ])
+    if len(rows) < 2:
+        return []
+    rows.sort(key=lambda r: (r[1], r[0], r[2], r[3]))
+    return [
+        "## 토큰·소요시간 요약",
+        "",
+        "문항당 평균 입력 토큰·응답 시간(중앙값)과, 해당 cell 전체 합. lookback 이 길어질수록 text 입력이 커지는지, vision 은 유지되는지 본다.",
+        "",
+        _md_table(
+            ["benchmark", "model", "입력", "chart", "입력 tok (평균)", "입력 tok (합)",
+             "출력 tok (평균)", "출력 tok (합)", "응답 s (중앙값)", "응답 s (합)", "정확도 %", "context 초과"],
+            rows,
+        ),
+        "",
+    ]
+
+
 def _hour_close(a: str, b: str) -> bool:
     try:
         ah, bh = int(a), int(b)
@@ -365,6 +419,7 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
         "- 공식 방식: TSRBench 공식 채점처럼 JSON 으로 읽히지 않은 응답을 분모에서 뺀 값.",
         "- 차이: 같은 문항끼리 baseline 과 비교한 값(%p). 얻음/잃음 = baseline 에서 틀렸다가 맞은 / 맞았다가 틀린 문항 수.",
         "- p: McNemar exact test. p(Holm) 은 같은 표 안의 여러 비교를 보정한 값이다.",
+        "- 토큰·시간: 입력/출력 tok 은 문항당 평균과 cell 합. 응답 s 는 문항당 중앙값과 cell 합(병렬 전 wall time 아님).",
         "",
     ]
 
@@ -372,6 +427,8 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
     galleries: dict[str, str] = {}   # unit -> 그림 파일. chart 는 model, 입력 조건과 무관해 한 번만 싣는다
     vision_groups = [g for g in groups.values() if g.modality != "text"]
     text_groups = {(g.bench, g.model): g for g in groups.values() if g.modality == "text"}
+
+    md += _cost_compare_section(groups, ordered)
 
     for g in vision_groups:
         labels = [lb for lb in ordered if lb in g.records]
@@ -452,15 +509,21 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
         for r in rows:
             size = "x".join(str(v) for v in r["image_size"]) if r["image_size"] else "-"
             extra.append([
-                r["label"], "-" if r["prompt_tokens"] is None else f"{r['prompt_tokens']:.0f}",
+                r["label"],
+                "-" if r["prompt_tokens"] is None else f"{r['prompt_tokens']:.0f}",
+                "-" if r["total_prompt_tokens"] is None else f"{r['total_prompt_tokens']:.0f}",
                 "-" if r["completion_tokens"] is None else f"{r['completion_tokens']:.0f}",
+                "-" if r["total_completion_tokens"] is None else f"{r['total_completion_tokens']:.0f}",
                 "-" if r["latency_median"] is None else f"{r['latency_median']:.1f}",
+                "-" if r["latency_total"] is None else f"{r['latency_total']:.0f}",
                 "-" if r["images_per_sample"] is None else f"{r['images_per_sample']:.1f}", size,
                 "-" if r["image_bytes"] is None else f"{r['image_bytes'] / 1024:.0f}",
                 r["retried"], r["truncated"], r["n_error"], r["n_overflow"],
             ])
         md += ["### 비용과 입력 크기", "",
-               _md_table(["chart", "입력 tok", "출력 tok", "응답 시간 s (중앙값)", "이미지 수", "이미지 px (최빈)", "이미지 KB", "재요청", "길이 한도로 잘림", "오류", "context 초과"], extra), ""]
+               _md_table(["chart", "입력 tok (평균)", "입력 tok (합)", "출력 tok (평균)", "출력 tok (합)",
+                          "응답 s (중앙값)", "응답 s (합)", "이미지 수", "이미지 px (최빈)", "이미지 KB",
+                          "재요청", "길이 한도로 잘림", "오류", "context 초과"], extra), ""]
 
         for unit, name in _gallery(g, labels, fig_dir, per_task=1):
             galleries.setdefault(unit, name)
@@ -472,14 +535,8 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
                 for task in ["ALL"] + sorted({s.task for s in g.samples.values()}):
                     sub = [r for i, r in recs.items() if task == "ALL" or g.samples[i].task == task]
                     s = stats.summarize(sub)
-                    csv_rows.append({
-                        "benchmark": g.bench, "model": g.model, "modality": g.modality, "chart": lb, "repeat": rep, "task": task,
-                        "n_done": s["n_done"], "correct": s["correct"], "acc": s["acc"],
-                        "ci_lo": s["ci"][0] if s["ci"] else None, "ci_hi": s["ci"][1] if s["ci"] else None,
-                        "acc_official": s["acc_official"], "no_answer": s["no_answer"], "non_json": s["non_json"],
-                        "n_error": s["n_error"], "n_overflow": s["n_overflow"],
-                        "hash": " ".join(p.cell.hash for p in plans_lb),
-                    })
+                    csv_rows.append(_csv_row(g.bench, g.model, g.modality, lb, rep, task, s,
+                                             " ".join(p.cell.hash for p in plans_lb)))
 
     for (bench, model), tg in text_groups.items():
         recs = tg.recs("none")
@@ -491,6 +548,18 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
         bits = _reference_lines(list(tg.samples.values()))
         if bits:
             md += ["기준선: " + " / ".join(bits), ""]
+        md += ["### 비용과 입력 크기", "",
+               _md_table(["입력 tok (평균)", "입력 tok (합)", "출력 tok (평균)", "출력 tok (합)",
+                          "응답 s (중앙값)", "응답 s (합)", "재요청", "길이 한도로 잘림", "오류", "context 초과"],
+                         [[
+                             "-" if s["prompt_tokens"] is None else f"{s['prompt_tokens']:.0f}",
+                             f"{s['total_prompt_tokens']:.0f}",
+                             "-" if s["completion_tokens"] is None else f"{s['completion_tokens']:.0f}",
+                             f"{s['total_completion_tokens']:.0f}",
+                             "-" if s["latency_median"] is None else f"{s['latency_median']:.1f}",
+                             "-" if s["latency_total"] is None else f"{s['latency_total']:.0f}",
+                             s["retried"], s["truncated"], s["n_error"], s["n_overflow"],
+                         ]]), ""]
         tasks = sorted({x.task for x in tg.samples.values()})
         if len(tasks) > 1:
             rows = []
@@ -503,14 +572,8 @@ def build_report(exp: Experiment, out_dir: Path | None = None) -> Path:
             for task in ["ALL"] + tasks:
                 sub = [r for i, r in tg.recs("none", rep).items() if task == "ALL" or tg.samples[i].task == task]
                 st = stats.summarize(sub)
-                csv_rows.append({
-                    "benchmark": bench, "model": model, "modality": "text", "chart": "none", "repeat": rep, "task": task,
-                    "n_done": st["n_done"], "correct": st["correct"], "acc": st["acc"],
-                    "ci_lo": st["ci"][0] if st["ci"] else None, "ci_hi": st["ci"][1] if st["ci"] else None,
-                    "acc_official": st["acc_official"], "no_answer": st["no_answer"], "non_json": st["non_json"],
-                    "n_error": st["n_error"], "n_overflow": st["n_overflow"],
-                    "hash": " ".join(p.cell.hash for p in tg.plans["none"] if p.cell.repeat == rep),
-                })
+                csv_rows.append(_csv_row(bench, model, "text", "none", rep, task, st,
+                                         " ".join(p.cell.hash for p in tg.plans["none"] if p.cell.repeat == rep)))
 
     if galleries:
         md += ["## chart 예시", "", "같은 문항을 chart 별로 그린 것 (행 = chart, 열 = 문항).", ""]

@@ -1,0 +1,20 @@
+# lookback 길이에 따른 text 대 vision 입력 효율. Seoul Bike 공공데이터.
+
+description: >
+  같은 따릉이 90문항·같은 정답으로, 보여주는 이력만 7일 / 14일 / 28일로 바꾼다.
+  text(숫자 나열)와 vision(line_style scale 3)의 입력 토큰·응답 시간·context 초과·정확도를 비교한다.
+  핵심 지표는 prompt_tokens 와 latency. 정확도는 참고.
+  출력은 짧은 JSON만 요청하고 max_tokens 256 (긴 CoT 시 시간 비교 불가).
+  모델 qwen3-vl-4b, sampling official.
+
+benchmarks:
+  - applied_seoul_ctx7
+  - applied_seoul_ctx14
+  - applied_seoul_ctx28
+models: [qwen3-vl-4b]
+modalities: [text, vision]
+charts:
+  - {use: line_style, scale: 3}
+sampling: official
+max_tokens: 256
+repeats: 1

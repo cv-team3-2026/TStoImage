@@ -121,6 +121,7 @@ def summarize(records: list[dict]) -> dict:
         "total_prompt_tokens": sum(r.get("prompt_tokens") or 0 for r in ok),
         "total_completion_tokens": sum(r.get("completion_tokens") or 0 for r in ok),
         "latency_median": median(latencies) if latencies else None,
+        "latency_total": sum(latencies) if latencies else None,
         "image_bytes": _mean([im["bytes"] for im in images]),
         "image_size": Counter(tuple(im["size"]) for im in images).most_common(1)[0][0] if images else None,
         "images_per_sample": len(images) / len(ok) if ok else None,

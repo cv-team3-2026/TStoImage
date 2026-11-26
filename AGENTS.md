@@ -114,6 +114,8 @@ Colab 에서 확인한 것 (2026-11-13, GPU 런타임, `run smoke --models qwen3
 | 2026-11-25 | `applied_seoul_peak`: 따릉이 재배치 피크(≥1000대/시) 시각 집합 F1. 7일+내일 기상예보, vision, `bike_peak` scale3 가로 2패널. 전환일 우선 60문항 | Metro는 계절 naive가 너무 높다. 날씨·휴일 전환에서 vision 우위를 보려 한다. perception 에서 이득이 있던 3배+가로 배치를 쓴다 |
 | 2026-11-25 | `applied_seoul_peak_gemini`: 위와 동일 조건, 모델만 `gemini-hydrogen` (OpenAI-compatible Gemini API) | Qwen 4B vision 상한을 상용 모델과 비교한다 |
 | 2026-11-25 | 대형 VLM 용 lab 실험 2개: `applied_seoul_peak_lab`, `applied_seoul_forecast_lab` (text/vision/text+vision, `lab-vlm`) | 다른 PC 에서 baseline 격파 여부를 본다. forecast 는 Seoul+scale3 이 4B 기준 가장 유망했다 |
+| 2026-11-26 | `applied_seoul_context`: 같은 Seoul 90문항을 lookback 7/14/28일로 잘라 text 대 vision 입력 토큰·overflow·정확도 비교. qwen3-vl-4b | plot 이 긴 구간에서 토큰·context 이점이 있는지 정량으로 보인다 |
+
 
 ## 5. 현재 상태
 

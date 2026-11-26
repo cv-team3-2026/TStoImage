@@ -215,6 +215,47 @@ class AppliedSeoul(_Applied):
     dataset = "seoul_bike"
 
 
+class _AppliedSeoulContext(_Applied):
+    """같은 Seoul 90문항, 보여주는 이력만 끝 N시간. text/vision 토큰 비교용."""
+
+    dataset = "seoul_bike"
+    tail_hours: int = 672
+    version = 1
+    revision = "seoul-context-v1"
+
+    @lru_cache(maxsize=None)
+    def load(self, unit: str) -> list[Sample]:
+        from ts2img.benchmarks import get_benchmark
+        from ts2img.benchmarks.applied.context import with_tail
+
+        base = get_benchmark("applied_seoul").load(unit)
+        spec = SPEC[self.dataset]
+        return [
+            with_tail(s, self.tail_hours, spec["quantity"], spec["unit"])
+            for s in base
+        ]
+
+    def prompt(self, sample: Sample, modality: str, opts: dict):
+        from ts2img.benchmarks.applied.context import build_prompt
+
+        return build_prompt(sample, modality)
+
+
+class AppliedSeoulCtx7(_AppliedSeoulContext):
+    name = "applied_seoul_ctx7"
+    tail_hours = 7 * 24
+
+
+class AppliedSeoulCtx14(_AppliedSeoulContext):
+    name = "applied_seoul_ctx14"
+    tail_hours = 14 * 24
+
+
+class AppliedSeoulCtx28(_AppliedSeoulContext):
+    name = "applied_seoul_ctx28"
+    tail_hours = 28 * 24
+
+
 class AppliedKpx(_Applied):
     name = "applied_kpx"
     dataset = "kpx"

@@ -29,6 +29,16 @@ python -m ts2img download applied_metro
 # KPX 는 자동 다운로드 없음 → data/applied/kpx/hourly.csv 직접
 ```
 
+## lookback 길이 비교 (text 대 vision 토큰)
+
+```bash
+python tools/download_applied_seoul.py
+python -m ts2img run applied_seoul_context --auto-serve --background
+python -m ts2img report applied_seoul_context
+```
+
+같은 90문항·같은 정답으로 이력만 7/14/28일. text 와 vision(`line_style` scale 3)의 **prompt_tokens·context 초과·정확도**를 비교한다.
+
 ## 대형 VLM 비교용 실험 (lab)
 
 다른 PC 의 OpenAI-compatible 서버(예: Qwen-VL 230B급)에 붙일 때:
